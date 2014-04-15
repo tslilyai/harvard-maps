@@ -1,0 +1,12 @@
+### Starting build.
+# Target: Main.ml.depends, tags: { annot, bin_annot, debug, extension:ml, file:Main.ml, ocaml, ocamldep, package(bin_prot.syntax), package(core), package(sexplib.syntax,comparelib.syntax,fieldslib.syntax,variantslib.syntax), quiet, short_paths, syntax(camlp4o), thread }
+ocamlfind ocamldep -syntax camlp4o -package bin_prot.syntax -package sexplib.syntax,comparelib.syntax,fieldslib.syntax,variantslib.syntax -package core -modules Main.ml > Main.ml.depends
++ ocamlfind ocamldep -syntax camlp4o -package bin_prot.syntax -package sexplib.syntax,comparelib.syntax,fieldslib.syntax,variantslib.syntax -package core -modules Main.ml > Main.ml.depends
+File "Main.ml", line 44, characters 14-19:
+Parse error: [opt_when_expr] expected after [patt_as_patt_opt] (in [match_case0])
+Preprocessing error on file Main.ml
+Error while running external preprocessor
+Command line: camlp4 '-I' '/usr/lib/ocaml/camlp4' '-I' '/home/jharvard/.opam/system/lib/type_conv' '-I' '/usr/lib/ocaml' '-I' '/usr/lib/ocaml' '-I' '/home/jharvard/.opam/system/lib/bin_prot' '-I' '/home/jharvard/.opam/system/lib/bin_prot' '-I' '/home/jharvard/.opam/system/lib/sexplib' '-I' '/home/jharvard/.opam/system/lib/sexplib' '-I' '/home/jharvard/.opam/system/lib/comparelib' '-I' '/home/jharvard/.opam/system/lib/comparelib' '-I' '/home/jharvard/.opam/system/lib/fieldslib' '-I' '/home/jharvard/.opam/system/lib/fieldslib' '-I' '/home/jharvard/.opam/system/lib/variantslib' '-I' '/home/jharvard/.opam/system/lib/variantslib' '-parser' 'o' '-parser' 'op' '-printer' 'p' 'pa_type_conv.cma' 'unix.cma' 'bigarray.cma' 'bin_prot.cma' 'pa_bin_prot.cma' 'sexplib.cma' 'pa_sexp_conv.cma' 'comparelib.cma' 'pa_compare.cma' 'fieldslib.cma' 'pa_fields_conv.cma' 'variantslib.cma' 'pa_variants_conv.cma'  'Main.ml' > /tmp/ocamlpp1cfc29
+
+Command exited with code 2.
+# Compilation unsuccessful.
