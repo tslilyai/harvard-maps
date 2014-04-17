@@ -33,9 +33,6 @@ module NodeHeapQueue = (BinaryHeap(PtCompare) :
                         PRIOQUEUE with type elt = PtCompare.t)
 
 
-(* store the whole modules in these variables *)
-(* let heap_module = (module NodeHeapQueue : PRIOQUEUE with type elt = PtCompare.t) *)
-
 let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.node) 
     : DistDict.dict * PrevDict.dict =
   let rec helper (H: NodeHeapQueue.queue) (dist: DistDict.dict) (prev: PrevDict.dict) 
