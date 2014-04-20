@@ -44,16 +44,21 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 		   else BoolDict.insert w_dict w_node true
 		 match (DistDict.lookup d (w_node, w_dict), 
 		       (DistDict.lookup dist (v_node, v_dict)) with 
-		 | None, _ -> failwith "that shouldn't happen"
-		 | _, None -> failwith "that shouldn't happen"
+		 | None, Some distv -> 
+ 			    let distw' = distv +. w_length in
+				let h' = NodeHeapQueue.add (w_node, distw') h in
+		      	let d' = DistDict.insert d w_node distw' in
+		      	let p' = PrevDict.insert p w_node v_node in
+		      		(h', d', p')
 		 | Some distw, Some distv -> 
 		    let distw' = distv +. w_length in
-		    if distw' < distw then
-		      let h' = NodeHeapQueue.add (w_node, distw') h in
-		      let d' = DistDict.insert d w_node distw' in
-		      let p' = PrevDict.insert p w_node v_node in
-		      (h', d', p')
+			if distw' < distw then 
+				let h' = NodeHeapQueue.add (w_node, distw') h in
+		      	let d' = DistDict.insert d w_node distw' in
+		      	let p' = PrevDict.insert p w_node v_node in
+		      		(h', d', p')
 		    else (h,d,p))
+		 | _, None -> failwith "that shouldn't happen")
 	     ~init: (heap',dist,prev) in 
 	 helper newheap newdist newprev in
   let initial_heap = (NodeHeapQueue.add (s,0.,BoolDict.empty) 
