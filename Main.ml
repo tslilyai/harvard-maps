@@ -1,6 +1,6 @@
 open Core.Std
 open Dict
-open Set
+open Myset
 open Prioqueue
 open Graph
 open Order
@@ -17,7 +17,8 @@ let cmdargs = Array.to_list Sys.argv in
 module NodeHeapQueue = (BinaryHeap(PtCompare) :
                         PRIOQUEUE with type elt = PtCompare.t)
 
-let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.node) (interm: 
+let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.node) 
+	     (interm: DestinationSet.set) 
     : (float * NamedGraph.node list)=
   let rec extract_path prev_dict node path = 
     match PrevDict.lookup prev_dict node with
@@ -38,8 +39,11 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 	     lst 
 	     ~f:(fun w (h,d,p) -> 
 		 let (w_node,w_length) = w in
-		 match (DistDict.lookup d w_node), 
-		       (DistDict.lookup dist v_node) with 
+		 let w_dict = 
+		   if not (DestinationSet.member interm w_node) then w_dict
+		   else BoolDict.insert w_dict w_node true
+		 match (DistDict.lookup d (w_node, w_dict), 
+		       (DistDict.lookup dist (v_node, v_dict)) with 
 		 | None, _ -> failwith "that shouldn't happen"
 		 | _, None -> failwith "that shouldn't happen"
 		 | Some distw, Some distv -> 
@@ -54,15 +58,16 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 	 helper newheap newdist newprev in
   let initial_heap = (NodeHeapQueue.add (s,0.,BoolDict.empty) 
 					NodeHeapQueue.empty) in
-  let initial_dist_before = List.fold_right 
+  (* let initial_dist_before = List.fold_right 
 		       (NamedGraph.nodes graph) 
 		       ~f:(fun n d -> DistDict.insert d (n, BoolDict.empty) 
 						      Float.max_value) 
 		       ~init:DistDict.empty in
   let initial_dist_updated = (DistDict.insert initial_dist_before 
-					      (s, BoolDict.empty) 0.) in
+					      (s, BoolDict.empty) 0.) in *)
+  let initial_dist = DistDict.empty in
   let initial_prev = PrevDict.empty in						    
-  let (final_dist,final_prev) = (helper initial_heap initial_dist_updated
+  let (final_dist,final_prev) = (helper initial_heap initial_dist
 					initial_prev) in
   let distance = match DistDict.lookup final_dist fin with
                 | None -> failwith "that shouldn't happen"
