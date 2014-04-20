@@ -14,41 +14,6 @@ let cs124graph = NamedGraph.from_edges
 let cmdargs = Array.to_list Sys.argv in
      Dijkstra's algorithm *)
 
-module BoolDict = Dict.Make(
-  struct
-    type key = string
-    type value = bool
-    let compare = string_compare
-    let string_of_key x = x
-    let string_of_value = Bool.to_string
-  end)
-
-module DistDict = Dict.Make(
-  struct
-    type key = string * BoolDict.dict
-    type value = float
-    let compare (x,dx) (y,dy) =
-      let i = string_compare x y in 
-      if i = Equal then
-	string_compare (BoolDict.string_of_dict dx) (BoolDict.string_of_dict dy)
-      else i	       
-    let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
-    let string_of_value = Float.to_string
-  end)
-
-module PrevDict = Dict.Make(
-  struct
-    type key = (string * BoolDict.dict)
-    type value = (string * BoolDict.dict)
-    let compare (x,dx) (y,dy) =
-      let i = string_compare x y in 
-      if i = Equal then
-	string_compare (BoolDict.string_of_dict dx) (BoolDict.string_of_dict dy)
-      else i	       
-    let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
-    let string_of_value (x,dict) = x ^ BoolDict.string_of_dict dict
-  end)
-
 module NodeHeapQueue = (BinaryHeap(PtCompare) :
                         PRIOQUEUE with type elt = PtCompare.t)
 
@@ -91,15 +56,15 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   let initial_heap = (NodeHeapQueue.add (s,0.) NodeHeapQueue.empty) in
   let initial_dist_before = List.fold_right 
 		       (NamedGraph.nodes graph) 
-		       ~f:(fun n d -> DistDict.insert d n Float.max_value) 
+		       ~f:(fun n d -> DistDict.insert d (n, BoolDict.empty) Float.max_value) 
 		       ~init:DistDict.empty in
-  let initial_dist_updated = (DistDict.insert initial_dist_before s 0.) in
+  let initial_dist_updated = (DistDict.insert initial_dist_before (s, BoolDict.empty) 0.) in
   let initial_prev = PrevDict.empty in						    
   let (final_dist,final_prev) = (helper initial_heap initial_dist_updated
 					initial_prev) in
   let distance = match DistDict.lookup final_dist fin with
                 | None -> failwith "that shouldn't happen"
-                | Some n -> n
+                | Some d -> d
   in let nodes = extract_path final_prev fin [fin]
   in (distance, nodes)
 ;;
