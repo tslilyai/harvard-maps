@@ -77,7 +77,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   let (final_dist,final_prev) = (helper initial_heap initial_dist_updated
 					initial_prev) in
   match DistDict.lookup final_dist fin with
-  | None -> Float.max_value
+  | None -> failwith "that shouldn't happen"
   | Some n -> n
 ;;
   
