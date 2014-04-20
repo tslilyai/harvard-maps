@@ -70,7 +70,7 @@ struct
   let string_of_t = string_of_int
 end
 
-module StringComparable : COMPARABLE = 
+module StringComparable : COMPARABLE with type t = string = 
 struct 
   open Order
   type t = string
@@ -79,7 +79,7 @@ struct
     | 0 -> Equal
     | 1 -> Greater
     | -1 -> Less
-  let string_of_t = t
+  let string_of_t t = t
 end
 
 

@@ -40,24 +40,27 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 	     ~f:(fun w (h,d,p) -> 
 		 let (w_node,w_length) = w in
 		 let w_dict = 
-		   if not (DestinationSet.member interm w_node) then w_dict
-		   else BoolDict.insert w_dict w_node true
-		 match (DistDict.lookup d (w_node, w_dict), 
+		   if DestinationSet.member interm w_node
+		   then BoolDict.insert v_dict w_node true
+		   else v_dict in
+		 match (DistDict.lookup d (w_node, w_dict)), 
 		       (DistDict.lookup dist (v_node, v_dict)) with 
 		 | None, Some distv -> 
- 			    let distw' = distv +. w_length in
-				let h' = NodeHeapQueue.add (w_node, distw', w_dict) h in
-		      	let d' = DistDict.insert d (w_node, w_dict) distw' in
-		      	let p' = PrevDict.insert p (w_node, w_dict) v_node in
-		      		(h', d', p')
+ 		    let distw' = distv +. w_length in
+		    let h' = NodeHeapQueue.add (w_node, distw', w_dict) h in
+		    let d' = DistDict.insert d (w_node, w_dict) distw' in
+		    let p' = PrevDict.insert p (w_node, w_dict) 
+					     (v_node, v_dict) in
+		    (h', d', p')
 		 | Some distw, Some distv -> 
 		    let distw' = distv +. w_length in
-			if distw' < distw then 
-				let h' = NodeHeapQueue.add (w_node, distw', w_dict) h in
-		      	let d' = DistDict.insert d (w_node, w_dict) distw' in
-		      	let p' = PrevDict.insert p (w_node, w_dict) v_node in
-		      		(h', d', p')
-		    else (h,d,p))
+		    if distw' < distw then 
+		      let h' = NodeHeapQueue.add (w_node, distw', w_dict) h in
+		      let d' = DistDict.insert d (w_node, w_dict) distw' in
+		      let p' = PrevDict.insert p (w_node, w_dict) 
+					       (v_node, v_dict) in
+		      (h', d', p')
+		    else (h,d,p)
 		 | _, None -> failwith "that shouldn't happen")
 	     ~init: (heap',dist,prev) in 
 	 helper newheap newdist newprev in
@@ -74,10 +77,13 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   let initial_prev = PrevDict.empty in						    
   let (final_dist,final_prev) = (helper initial_heap initial_dist
 					initial_prev) in
-  let distance = match DistDict.lookup final_dist fin with
+  let final_booldict = DestinationSet.fold 
+			 (fun node dict -> BoolDict.insert dict node true) 
+			 BoolDict.empty interm in
+  let distance = match DistDict.lookup final_dist (fin, final_booldict) with
                 | None -> failwith "that shouldn't happen"
                 | Some d -> d
-  in let nodes = extract_path final_prev fin [fin]
+  in let nodes = extract_path final_prev (fin, final_booldict) [fin]
   in (distance, nodes)
 ;;
   
@@ -88,6 +94,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 let rec print_list = function [] -> ()
   | e::l -> print_string e ; print_string " " ; print_list l;;
 
-print_list (let (_, ls) = (dijkstra cs124graph "s" "e") in ls);;
+print_list (let (_, ls) = (dijkstra cs124graph "s" "e" 
+				    DestinationSet.empty) in ls);;
 
 
