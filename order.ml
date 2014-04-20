@@ -10,3 +10,4 @@ let string_compare x y =
 let int_compare x y =
   let i = x - y in
     if i = 0 then Equal else if i < 0 then Less else Greater ;;
+

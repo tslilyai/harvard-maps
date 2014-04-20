@@ -14,21 +14,38 @@ let cs124graph = NamedGraph.from_edges
 let cmdargs = Array.to_list Sys.argv in
      Dijkstra's algorithm *)
 
-module DistDict = Dict.Make(
+module BoolDict = Dict.Make(
   struct
     type key = string
-    type value = float
+    type value = bool
     let compare = string_compare
     let string_of_key x = x
+    let string_of_value = Bool.to_string
+  end)
+
+module DistDict = Dict.Make(
+  struct
+    type key = string * BoolDict.dict
+    type value = float
+    let compare (x,dx) (y,dy) =
+      let i = string_compare x y in 
+      if i = Equal then
+	string_compare (BoolDict.string_of_dict dx) (BoolDict.string_of_dict dy)
+      else i	       
+    let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
     let string_of_value = Float.to_string
   end)
 
 module PrevDict = Dict.Make(
   struct
-    type key = string
+    type key = (string * BoolDict.dict)
     type value = string
-    let compare = string_compare
-    let string_of_key x = x
+    let compare (x,dx) (y,dy) =
+      let i = string_compare x y in 
+      if i = Equal then
+	string_compare (BoolDict.string_of_dict dx) (BoolDict.string_of_dict dy)
+      else i	       
+    let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
     let string_of_value x = x
   end)
 
@@ -95,3 +112,5 @@ let rec print_list = function [] -> ()
   | e::l -> print_string e ; print_string " " ; print_list l;;
 
 print_list (let (_, ls) = (dijkstra cs124graph "s" "e") in ls);;
+
+
