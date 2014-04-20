@@ -17,8 +17,7 @@ let cmdargs = Array.to_list Sys.argv in
 module NodeHeapQueue = (BinaryHeap(PtCompare) :
                         PRIOQUEUE with type elt = PtCompare.t)
 
-
-let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.node) 
+let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.node) (interm: 
     : (float * NamedGraph.node list)=
   let rec extract_path prev_dict node path = 
     match PrevDict.lookup prev_dict node with
@@ -30,7 +29,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
           : DistDict.dict * PrevDict.dict =
     if NodeHeapQueue.is_empty heap then (dist,prev)
     else 
-      let ((v_node,v_dist), heap') = NodeHeapQueue.take heap in
+      let ((v_node,v_dist,v_dict), heap') = NodeHeapQueue.take heap in
       match NamedGraph.neighbors graph v_node with
       | None -> failwith "Neighborless Node"
       | Some lst ->
@@ -53,12 +52,15 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 		    else (h,d,p))
 	     ~init: (heap',dist,prev) in 
 	 helper newheap newdist newprev in
-  let initial_heap = (NodeHeapQueue.add (s,0.) NodeHeapQueue.empty) in
+  let initial_heap = (NodeHeapQueue.add (s,0.,BoolDict.empty) 
+					NodeHeapQueue.empty) in
   let initial_dist_before = List.fold_right 
 		       (NamedGraph.nodes graph) 
-		       ~f:(fun n d -> DistDict.insert d (n, BoolDict.empty) Float.max_value) 
+		       ~f:(fun n d -> DistDict.insert d (n, BoolDict.empty) 
+						      Float.max_value) 
 		       ~init:DistDict.empty in
-  let initial_dist_updated = (DistDict.insert initial_dist_before (s, BoolDict.empty) 0.) in
+  let initial_dist_updated = (DistDict.insert initial_dist_before 
+					      (s, BoolDict.empty) 0.) in
   let initial_prev = PrevDict.empty in						    
   let (final_dist,final_prev) = (helper initial_heap initial_dist_updated
 					initial_prev) in
