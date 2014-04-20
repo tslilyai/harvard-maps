@@ -70,6 +70,18 @@ struct
   let string_of_t = string_of_int
 end
 
+module StringComparable : COMPARABLE = 
+struct 
+  open Order
+  type t = string
+  let compare x y = let i = String.compare x y in
+    match i with
+    | 0 -> Equal
+    | 1 -> Greater
+    | -1 -> Less
+  let string_of_t = t
+end
+
 
 (******************************************************************)
 (* DictSet: a functor that creates a SET by calling our           *)
@@ -230,4 +242,6 @@ end
 (******************************************************************)
 module Make(C : COMPARABLE) : (SET with type elt = C.t) =
   DictSet (C)
+
+module DestinationSet = Make(StringComparable)
 
