@@ -10,7 +10,6 @@ let cs124graph = NamedGraph.from_edges
 		    ("b","d",2.);("d","f",2.);("f","e",1.);("c","f",2.);
 		    ("c","b",1.);("a","b",3.);("b","a",5.)];;
 
-(*  print_string (let hd::_ = (NamedGraph.nodes graph) in hd); *)
 (*
 let cmdargs = Array.to_list Sys.argv in
      Dijkstra's algorithm *)
@@ -38,7 +37,12 @@ module NodeHeapQueue = (BinaryHeap(PtCompare) :
 
 
 let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.node) 
-    : float =
+    : (float * NamedGraph.node list)=
+  let rec extract_path prev_dict node path = 
+    match PrevDict.lookup prev_dict node with
+                  | None -> path
+                  | Some n -> extract_path prev_dict n (n::path)
+  in
   let rec helper (heap: NodeHeapQueue.queue) (dist: DistDict.dict) 
 		 (prev: PrevDict.dict) 
           : DistDict.dict * PrevDict.dict =
@@ -76,11 +80,18 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   let initial_prev = PrevDict.empty in						    
   let (final_dist,final_prev) = (helper initial_heap initial_dist_updated
 					initial_prev) in
-  match DistDict.lookup final_dist fin with
-  | None -> Float.max_value
-  | Some n -> n
+  let distance = match DistDict.lookup final_dist fin with
+                | None -> failwith "that shouldn't happen"
+                | Some n -> n
+  in let nodes = extract_path final_prev fin [fin]
+  in (distance, nodes)
 ;;
   
     
    
-Printf.printf "%f" (dijkstra cs124graph "s" "a");;
+Printf.printf "%f \n" let (x, _) = (dijkstra cs124graph "s" "e") in x;;
+
+let rec print_list = function [] -> ()
+  | e::l -> print_string e ; print_string " " ; print_list l;;
+
+print_list (let (_, ls) = (dijkstra cs124graph "s" "e") in ls);;
