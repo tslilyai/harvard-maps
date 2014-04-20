@@ -46,16 +46,16 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 		       (DistDict.lookup dist (v_node, v_dict)) with 
 		 | None, Some distv -> 
  			    let distw' = distv +. w_length in
-				let h' = NodeHeapQueue.add (w_node, distw') h in
-		      	let d' = DistDict.insert d w_node distw' in
-		      	let p' = PrevDict.insert p w_node v_node in
+				let h' = NodeHeapQueue.add (w_node, distw', w_dict) h in
+		      	let d' = DistDict.insert d (w_node, w_dict) distw' in
+		      	let p' = PrevDict.insert p (w_node, w_dict) v_node in
 		      		(h', d', p')
 		 | Some distw, Some distv -> 
 		    let distw' = distv +. w_length in
 			if distw' < distw then 
-				let h' = NodeHeapQueue.add (w_node, distw') h in
-		      	let d' = DistDict.insert d w_node distw' in
-		      	let p' = PrevDict.insert p w_node v_node in
+				let h' = NodeHeapQueue.add (w_node, distw', w_dict) h in
+		      	let d' = DistDict.insert d (w_node, w_dict) distw' in
+		      	let p' = PrevDict.insert p (w_node, w_dict) v_node in
 		      		(h', d', p')
 		    else (h,d,p))
 		 | _, None -> failwith "that shouldn't happen")
