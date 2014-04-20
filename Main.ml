@@ -91,15 +91,15 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   let initial_heap = (NodeHeapQueue.add (s,0.) NodeHeapQueue.empty) in
   let initial_dist_before = List.fold_right 
 		       (NamedGraph.nodes graph) 
-		       ~f:(fun n d -> DistDict.insert d n Float.max_value) 
+		       ~f:(fun n d -> DistDict.insert d (n, BoolDict.empty) Float.max_value) 
 		       ~init:DistDict.empty in
-  let initial_dist_updated = (DistDict.insert initial_dist_before s 0.) in
+  let initial_dist_updated = (DistDict.insert initial_dist_before (s, BoolDict.empty) 0.) in
   let initial_prev = PrevDict.empty in						    
   let (final_dist,final_prev) = (helper initial_heap initial_dist_updated
 					initial_prev) in
   let distance = match DistDict.lookup final_dist fin with
                 | None -> failwith "that shouldn't happen"
-                | Some n -> n
+                | Some d -> d
   in let nodes = extract_path final_prev fin [fin]
   in (distance, nodes)
 ;;
