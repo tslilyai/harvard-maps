@@ -7,6 +7,7 @@ open Graph
 let graph = NamedGraph.from_edges [("a","b", 2.); ("b","c",1.);("b","a",2.)];;
 
 print_string (let hd::_ = (NamedGraph.nodes graph) in hd);
+
 (*
 let cmdargs = Array.to_list Sys.argv in
      Dijkstra's algorithm *)
