@@ -39,14 +39,14 @@ module DistDict = Dict.Make(
 module PrevDict = Dict.Make(
   struct
     type key = (string * BoolDict.dict)
-    type value = string
+    type value = (string * BoolDict.dict)
     let compare (x,dx) (y,dy) =
       let i = string_compare x y in 
       if i = Equal then
 	string_compare (BoolDict.string_of_dict dx) (BoolDict.string_of_dict dy)
       else i	       
     let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
-    let string_of_value x = x
+    let string_of_value (x,dict) = x ^ BoolDict.string_of_dict dict
   end)
 
 module NodeHeapQueue = (BinaryHeap(PtCompare) :
@@ -58,7 +58,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   let rec extract_path prev_dict node path = 
     match PrevDict.lookup prev_dict node with
                   | None -> path
-                  | Some n -> extract_path prev_dict n (n::path)
+                  | Some (str,dict) -> extract_path prev_dict (str,dict) (str::path)
   in
   let rec helper (heap: NodeHeapQueue.queue) (dist: DistDict.dict) 
 		 (prev: PrevDict.dict) 

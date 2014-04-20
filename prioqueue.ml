@@ -1,4 +1,5 @@
 open Core.Std
+open Dict
 
 type order = Equal | Less | Greater
 
@@ -28,28 +29,28 @@ end
 
 (* An example implementation of the COMPARABLE signature. In this
  * example, the value of the integer also gives its priority. *)
-module PtCompare : COMPARABLE with type t=string * float =
+module PtCompare : COMPARABLE with type t=string * float * BoolDict.dict =
 struct
-  type t = string * float
+  type t = string * float * BoolDict.dict
 
-  let compare x y = let (n1, d1), (n2, d2) = (x, y) in 
-		    if d1 < d2 then Less 
-		    else if d1 > d2 then Greater 
+  let compare x y = let (n1, dist1, dict1), (n2, dist2, dict2) = (x, y) in 
+		    if dist1 < dist2 then Less 
+		    else if dist1 > dist2 then Greater 
 		    else Equal
 
   let to_string x = 
-    let (n,d) = x in 
-    "(" ^ n ^ "," ^(Float.to_string d) ^ ")"
+    let (n,d,dict) = x in 
+    "(" ^ n ^ "," ^(Float.to_string d) ^ "," ^ (BoolDict.string_of_dict dict) ^ ")"
 
-  let generate () = ("x", 0.)
+  let generate () = ("x", 0., BoolDict.empty)
 
   let generate_gt x () = 
-    let (n, d) = x in
-    (n, d +. 1.)
+    let (n, d,dict) = x in
+    (n, d +. 1., dict)
 
   let generate_lt x () = 
-    let (n, d) = x in
-    (n, d -. 1.)
+    let (n, d, dict) = x in
+    (n, d -. 1., dict)
 
   (* let generate_between x y () =
     let (n1, d1) = x in

@@ -1,4 +1,5 @@
 open Core.Std
+open Order
 
 (* Interfaces and implementations of dictionaries.  A dictionary
  * is used to associate a value with a key.  
@@ -772,3 +773,39 @@ module Make (D:DICT_ARG) : (DICT with type key = D.key
   with type value = D.value) =
   BTDict(D)
 
+(* make all the modules *)
+
+module BoolDict = Make(
+  struct
+    type key = string
+    type value = bool
+    let compare = string_compare
+    let string_of_key x = x
+    let string_of_value = Bool.to_string
+  end)
+
+module DistDict = Make(
+  struct
+    type key = string * BoolDict.dict
+    type value = float
+    let compare (x,dx) (y,dy) =
+      let i = string_compare x y in 
+      if i = Equal then
+	string_compare (BoolDict.string_of_dict dx) (BoolDict.string_of_dict dy)
+      else i	       
+    let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
+    let string_of_value = Float.to_string
+  end)
+
+module PrevDict = Make(
+  struct
+    type key = (string * BoolDict.dict)
+    type value = (string * BoolDict.dict)
+    let compare (x,dx) (y,dy) =
+      let i = string_compare x y in 
+      if i = Equal then
+	string_compare (BoolDict.string_of_dict dx) (BoolDict.string_of_dict dy)
+      else i	       
+    let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
+    let string_of_value (x,dict) = x ^ BoolDict.string_of_dict dict
+  end)
