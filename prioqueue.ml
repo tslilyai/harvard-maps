@@ -39,17 +39,17 @@ struct
 
   let to_string x = 
     let (n,d) = x in 
-    "(" ^ n ^ "," ^string_of_int d ^ ")"
+    "(" ^ n ^ "," ^(Float.to_string d) ^ ")"
 
-  let generate () = ("x", 0)
+  let generate () = ("x", 0.)
 
   let generate_gt x () = 
     let (n, d) = x in
-    (n, d + 1)
+    (n, d +. 1.)
 
   let generate_lt x () = 
     let (n, d) = x in
-    (n, d - 1)
+    (n, d -. 1.)
 
   (* let generate_between x y () =
     let (n1, d1) = x in
