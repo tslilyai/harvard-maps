@@ -30,7 +30,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
           : DistDict.dict * PrevDict.dict =
     if NodeHeapQueue.is_empty heap then (dist,prev)
     else 
-      let ((v_node,v_dist,v_dict), heap') = NodeHeapQueue.take heap in
+      let ((v_node,_,v_dict), heap') = NodeHeapQueue.take heap in
       match NamedGraph.neighbors graph v_node with
       | None -> failwith "Neighborless Node"
       | Some lst ->
@@ -61,19 +61,12 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 					       (v_node, v_dict) in
 		      (h', d', p')
 		    else (h,d,p)
-		 | _, None -> failwith "that shouldn't happen")
+		 | _, None -> failwith("that shouldn't happen")
 	     ~init: (heap',dist,prev) in 
 	 helper newheap newdist newprev in
   let initial_heap = (NodeHeapQueue.add (s,0.,BoolDict.empty) 
 					NodeHeapQueue.empty) in
-  (* let initial_dist_before = List.fold_right 
-		       (NamedGraph.nodes graph) 
-		       ~f:(fun n d -> DistDict.insert d (n, BoolDict.empty) 
-						      Float.max_value) 
-		       ~init:DistDict.empty in
-  let initial_dist_updated = (DistDict.insert initial_dist_before 
-					      (s, BoolDict.empty) 0.) in *)
-  let initial_dist = DistDict.empty in
+  let initial_dist = DistDict.insert DistDict.empty (s,BoolDict.empty) 0. in
   let initial_prev = PrevDict.empty in						    
   let (final_dist,final_prev) = (helper initial_heap initial_dist
 					initial_prev) in
@@ -81,7 +74,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 			 (fun node dict -> BoolDict.insert dict node true) 
 			 BoolDict.empty interm in
   let distance = match DistDict.lookup final_dist (fin, final_booldict) with
-                | None -> failwith "that shouldn't happen"
+                | None -> failwith ("that shouldn't happen")
                 | Some d -> d
   in let nodes = extract_path final_prev (fin, final_booldict) [fin]
   in (distance, nodes)
@@ -96,5 +89,3 @@ let rec print_list = function [] -> ()
 
 print_list (let (_, ls) = (dijkstra cs124graph "s" "e" 
 				    DestinationSet.empty) in ls);;
-
-

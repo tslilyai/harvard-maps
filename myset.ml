@@ -75,10 +75,7 @@ struct
   open Order
   type t = string
   let compare x y = let i = String.compare x y in
-    match i with
-    | 0 -> Equal
-    | 1 -> Greater
-    | -1 -> Less
+    if i = 0 then Equal else if i > 0 then Greater else Less
   let string_of_t t = t
 end
 
@@ -91,13 +88,13 @@ end
 module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
 struct
   module D = Dict.Make(
-		 struct
-		   type key = C.t
-		   type value = C.t
-		   let compare = C.compare
-		   let string_of_key = C.string_of_t
-		   let string_of_value = C.string_of_t
-		 end)
+     struct
+       type key = C.t
+       type value = C.t
+       let compare = C.compare
+       let string_of_key = C.string_of_t
+       let string_of_value = C.string_of_t
+     end)
 
   type elt = D.key
   type set = D.dict
@@ -106,13 +103,13 @@ struct
   let insert x d = D.insert d x x
   let singleton x = D.insert D.empty x x
   let fold f = D.fold (fun k _ z -> f k z)
-  let union d1 d2 = fold insert d1 d2				        
+  let union d1 d2 = fold insert d1 d2               
   let intersect d1 d2 = fold (fun k z -> 
-				   if D.member d2 k then 
-				     insert k z
-				   else z)
-				  D.empty
-				  d1
+           if D.member d2 k then 
+             insert k z
+           else z)
+          D.empty
+          d1
   let remove x d = D.remove d x
   let member d x = D.member d x
   let choose d = (
@@ -172,7 +169,7 @@ struct
     let s3 = intersect s1 s2 in
     assert (intersect s1 empty = empty);
     List.iter elts2 ~f:(fun k -> if member s1 k then assert(member s3 k) 
-				 else assert (not (member s3 k)));
+         else assert (not (member s3 k)));
     ()
 
   let test_member () =
@@ -192,10 +189,10 @@ struct
       elts
       ~f:(fun _ ->
           let r = choose s1 in
-	  match r with
-	  | None -> assert (false)
-	  | Some (x,rest) -> assert ((not (member rest x)) && member s1 x)
-	 );
+    match r with
+    | None -> assert (false)
+    | Some (x,rest) -> assert ((not (member rest x)) && member s1 x)
+   );
     ()
 
   let test_fold () =
@@ -244,4 +241,3 @@ module Make(C : COMPARABLE) : (SET with type elt = C.t) =
   DictSet (C)
 
 module DestinationSet = Make(StringComparable)
-
