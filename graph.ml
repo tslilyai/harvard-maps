@@ -10,7 +10,7 @@ sig
   val gen : unit -> node
 end
 
-(* A signature for directed graphs with weighted edges *)
+(* A signature for undirected graphs with weighted edges *)
 module type GRAPH =
 sig
   module N : NODE
@@ -25,7 +25,8 @@ sig
 
   val add_node : graph -> node -> graph
 
-  (* Adds the nodes if they aren't already present. *)
+  (* Adds the nodes if they aren't already present. adds both the forward
+   * and back edge. *)
   val add_edge : graph -> node -> node -> float  -> graph
 
   (* Return None if node isn't in the graph *)

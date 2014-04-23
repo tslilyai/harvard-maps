@@ -8,7 +8,7 @@ open Order
 let cs124graph = NamedGraph.from_edges 
 		   [("s","a", 2.); ("a","c",1.);("c","e",4.);("s","b",6.);
 		    ("b","d",2.);("d","f",2.);("f","e",1.);("c","f",2.);
-		    ("c","b",1.);("a","b",3.);("b","a",5.)];;
+		    ("c","b",1.);("b","a",5.)];;
 
 (*
 let cmdargs = Array.to_list Sys.argv in
@@ -32,7 +32,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
     else 
       let ((v_node,_,v_dict), heap') = NodeHeapQueue.take heap in
       match NamedGraph.neighbors graph v_node with
-      | None -> failwith "Neighborless Node"
+      | None -> failwith "Neighborless node, impossible in our graph"
       | Some lst ->
 	 let (newheap, newdist, newprev) = 
            List.fold_right 
@@ -61,7 +61,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 					       (v_node, v_dict) in
 		      (h', d', p')
 		    else (h,d,p)
-		 | _, None -> failwith("that shouldn't happen")
+		 | _, None -> failwith("There should always be a distv"))
 	     ~init: (heap',dist,prev) in 
 	 helper newheap newdist newprev in
   let initial_heap = (NodeHeapQueue.add (s,0.,BoolDict.empty) 
@@ -74,17 +74,22 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 			 (fun node dict -> BoolDict.insert dict node true) 
 			 BoolDict.empty interm in
   let distance = match DistDict.lookup final_dist (fin, final_booldict) with
-                | None -> failwith ("that shouldn't happen")
+                | None -> failwith ("Unreachable destination")
                 | Some d -> d
   in let nodes = extract_path final_prev (fin, final_booldict) [fin]
   in (distance, nodes)
 ;;
   
-    
-   
-(*  Printf.printf "%f \n" let (x, _) = (dijkstra cs124graph "s" "e") in x;; *)
 
 let rec print_list = function [] -> ()
   | e::l -> print_string e ; print_string " " ; print_list l;;
 
-print_list (let (_, ls) = (dijkstra cs124graph "s" "e" 
+ let build_set (lst: string list) : DestinationSet.set = 
+  List.fold_right lst ~f:(fun x y -> DestinationSet.insert x y)
+		  ~init:DestinationSet.empty ;;
+
+(* let testset = DestinationSet.insert ("s") DestinationSet.empty;; *)
+let (x, ls) = (dijkstra cs124graph "s" "s" 
+				    (build_set ["s";"a";"b";"c";"d";"e";"f"]));;
+
+print_list (ls); print_float x;;
