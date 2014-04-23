@@ -88,7 +88,6 @@ let rec print_list = function [] -> ()
   List.fold_right lst ~f:(fun x y -> DestinationSet.insert x y)
 		  ~init:DestinationSet.empty ;;
 
-(* let testset = DestinationSet.insert ("s") DestinationSet.empty;; *)
 let (x, ls) = (dijkstra cs124graph "s" "s" 
 				    (build_set ["s";"a";"b";"c";"d";"e";"f"]));;
 
