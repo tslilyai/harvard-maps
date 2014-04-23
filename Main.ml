@@ -94,7 +94,13 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 let rec print_list = function [] -> ()
   | e::l -> print_string e ; print_string " " ; print_list l;;
 
+ let build_set (lst: string list) : DestinationSet.set = 
+  List.fold_right lst ~f:(fun x y -> DestinationSet.insert x y)
+		  ~init:DestinationSet.empty ;;
+
+(* let testset = DestinationSet.insert ("s") DestinationSet.empty;; *)
+
 print_list (let (_, ls) = (dijkstra cs124graph "s" "e" 
-				    DestinationSet.empty) in ls);;
+				    (build_set [])) in ls);;
 
 
