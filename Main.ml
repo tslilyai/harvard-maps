@@ -47,6 +47,20 @@ let std_response =
   read_page maps_home_page
 ;;
 
+(** QUERIES **)
+
+  let query_re = Str.regexp "\\?q=\\(.*\\)"
+  let term_sep_re = Str.regexp "\\+"
+    
+  (* now returns a list rather than a query *)
+  let parse_query s = 
+    if Str.string_match query_re s 0 then 
+      let qs = Str.matched_group 1 s in 
+      let words = Str.split term_sep_re qs 
+      in 
+        (*parse_words *) words
+    else raise (Failure "query not understood")
+
 (* The header for search responses to clients. *)
 let query_response_header =
   std_response_header ^
@@ -68,7 +82,7 @@ let http_get_re =
 ;;
 
 let do_query query_string =
-  let query = Q.parse_query query_string in
+  let query = parse_query query_string in
   let (start_pos, end_pos, interm) = extract_params query in
   let (x, ls) = (dijkstra firstgraph start_pos end_pos interm) in
   let response_body = (Float.to_string x) ^ (string_of_list ls)
@@ -88,7 +102,6 @@ let send_all fd buf =
   let size = String.length buf in
   let _ = more 0 size in size
 ;;
-
 
 (* process a request -- we're expecting a GET followed by a url or a query
  * "?q=word+word".  If we find a query, then we feed it to the query parser to
