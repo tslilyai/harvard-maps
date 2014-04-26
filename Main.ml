@@ -186,10 +186,6 @@ let do_query query_string =
   let (x, ls) = (dijkstra data start_pos end_pos interm) in
   let response_body = (Float.to_string x) ^ (string_of_list ls) in
     query_response_header ^ response_body ^ query_response_footer
-
-(* Given a requested path, return the corresponding local path *)
-let local_path qs =
-  Filename.concat root_dir qs
   
 let send_all fd buf =
   let rec more st size =
