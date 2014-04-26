@@ -117,7 +117,7 @@ let std_response_header =
     "Connection: close\n\n"
 ;;
 
-let maps_home_page = "./main.html" ;;
+let maps_home_page = "./Main.html" ;;
 
 (* read in all the lines from a file and concatenate them into
  * a big string. *)
