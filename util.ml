@@ -272,20 +272,18 @@ module CrawlerServices : CRAWLER_SERVICES =
     (* Read the command line arguments and return the
      * port number which Moogle should use for serving,
      * the number of pages to index, and the root url. *)
-    let (server_port, num_pages_to_search, root_url) =
+    let server_port =
       let args = Sys.argv in
         try
           let port = int_of_string(Array.get args 1) in
-          let num = int_of_string(Array.get args 2) in
-          let root_url = Array.get args 3 in
-            (port, num, root_url)
+            port
         with
             exn -> (Printf.printf
-                      "usage: %s <port> <num-pages> <root-url>\n"
+                      "usage: %s <port>\n"
                       (Array.get args 0) ;
                     exit 1)
 
-    let initial_link =
+(*    let initial_link =
       try parse_url root_url
       with Not_found ->
         match link_of_string {host=""; port=80; path=""} root_url with
@@ -293,16 +291,17 @@ module CrawlerServices : CRAWLER_SERVICES =
               (Printf.printf
                  "Please specify a url or path to a starting file\n" ;
                exit 1)
-          | Some l -> l
+          | Some l -> l *)
 
-    let root_dir =
+(*    let root_dir =
       if initial_link.host = ""
       then Filename.dirname initial_link.path
       else ""
-
+ *)
     (* Return a link that should work in an href.
      * If the link is a file in the root_dir, return just the
      * relative path.  *)
+
     let href_of_link l =
       let suffix str start =
         let len = String.length str in
