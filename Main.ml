@@ -81,11 +81,25 @@ let http_get_re =
   Str.regexp_case_fold "GET[ \t]+/\\([^ \t]*\\)[ \t]+HTTP/1\\.[0-9]"
 ;;
 
+
+let rec string_of_list (ls: string list) : string =
+  List.fold_right ~init:"" ls ~f:(fun x y -> x ^ "\n" ^ y)
+;;
+
+let build_set (lst: NamedGraph.node list) : DestinationSet.set = 
+  List.fold_right lst ~f:(fun x y -> DestinationSet.insert x y)
+		  ~init:DestinationSet.empty ;;
+
+let extract_params (lst: string list) : NamedGraph.node * NamedGraph.node * DestinationSet.set =
+  match lst with
+  | [] |_ :: [] | _ :: _ :: [] -> failwith "not enough params"
+  | _ :: hd_1 :: hd_2 :: lst' -> (hd_1, hd_2, build_set lst');;
+
 let do_query query_string =
   let query = parse_query query_string in
   let (start_pos, end_pos, interm) = extract_params query in
   let (x, ls) = (dijkstra firstgraph start_pos end_pos interm) in
-  let response_body = (Float.to_string x) ^ (string_of_list ls)
+  let response_body = (Float.to_string x) ^ (string_of_list ls) in
     query_response_header ^ response_body ^ query_response_footer
 
 (* Given a requested path, return the corresponding local path *)
@@ -264,18 +278,3 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   in let nodes = extract_path final_prev (fin, final_booldict) [fin]
   in (distance, nodes)
 ;;
-
-let rec string_of_list (ls: string list) : string
-  List.fold_right ~init::"" ls ~f(fun x y -> x ^ "\n" ^ y)
-
-let build_set (lst: NamedGraph.node list) : DestinationSet.set = 
-  List.fold_right lst ~f:(fun x y -> DestinationSet.insert x y)
-		  ~init:DestinationSet.empty ;;
-
- (*let (x, ls) = (dijkstra cs124graph "s" "s" 
-				    (build_set ["a";"b";"c"]));; *)
-
-let extract_params (lst: string list) : NamedGraph.node * NamedGraph.node * DestinationSet.set =
-  match lst with
-  | [] |_ :: [] | _ :: _ :: [] -> failwith "not enough params"
-  | _ :: hd_1 :: hd_2 :: lst' -> (hd_1, hd_2, build_set lst');;
