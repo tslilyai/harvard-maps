@@ -8,7 +8,7 @@ open Order
 (** DJKSTRA FUNCTIONS **)
 
 
-let rec string_of_list (ls: string list) : string =
+let string_of_list (ls: string list) : string =
   List.fold_right ~init:"" ls ~f:(fun x y -> x ^ "\n" ^ y)
 ;;
 
@@ -233,7 +233,7 @@ let process_request client_fd request index ranks =
       let response =
         if is_search query_string then
           (* print "seaching!" ;  *)
-           do_query query_string index ranks
+           do_query query_string
         else
           if is_safe query_string
           then (print "not a search query!" ; std_response)
