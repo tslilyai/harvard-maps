@@ -10,9 +10,23 @@ let cs124graph = NamedGraph.from_edges
 		    ("b","d",2.);("d","f",2.);("f","e",1.);("c","f",2.);
 		    ("c","b",1.);("b","a",5.)];;
 
-(*
-let cmdargs = Array.to_list Sys.argv in
-     Dijkstra's algorithm *)
+let firstgraph = NamedGraph.from_edges [
+("Yenching", "J_August", 49.);
+("J_August", "Leavitt", 36.);
+("Leavitt", "JP_Licks", 3.);
+("JP_Licks", "Gnomon", 26.);
+("Felix", "Gnomon", 16.);
+("Felix", "Zinnia", 49.);
+("Zinnia", "STA_Travel", 528.);
+("Tennis", "STA_Travel", 151.);
+("Tennis", "Boloco", 20.);
+("Boloco", "Spice", 138.);
+("Spice", "Andover", 33.);
+("Andover", "Ginos", 20.);
+("Ginos", "Sandrines", 164.);
+("Yenching", "Sandrines", 177.)]
+
+let cmdargs = Array.to_list Sys.argv;;
 
 module NodeHeapQueue = (BinaryHeap(PtCompare) :
                         PRIOQUEUE with type elt = PtCompare.t)
@@ -84,11 +98,20 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 let rec print_list = function [] -> ()
   | e::l -> print_string e ; print_string " " ; print_list l;;
 
- let build_set (lst: string list) : DestinationSet.set = 
+let build_set (lst: NamedGraph.node list) : DestinationSet.set = 
   List.fold_right lst ~f:(fun x y -> DestinationSet.insert x y)
 		  ~init:DestinationSet.empty ;;
 
-let (x, ls) = (dijkstra cs124graph "s" "s" 
-				    (build_set ["s";"a";"b";"c";"d";"e";"f"]));;
+ (*let (x, ls) = (dijkstra cs124graph "s" "s" 
+				    (build_set ["a";"b";"c"]));; *)
 
-print_list (ls); print_float x;;
+let extract_params (lst: string list) : NamedGraph.node * NamedGraph.node * DestinationSet.set =
+  match lst with
+  | [] |_ :: [] | _ :: _ :: [] -> failwith "not enough params"
+  | _ :: hd_1 :: hd_2 :: lst' -> (hd_1, hd_2, build_set lst');;
+
+let (start_pos, end_pos, interm) = extract_params cmdargs;;
+
+let (x, ls) = (dijkstra firstgraph start_pos end_pos interm);;  
+
+print_list (ls);; print_float x;; 
