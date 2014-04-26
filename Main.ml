@@ -236,8 +236,8 @@ let process_request client_fd request index ranks =
            do_query query_string
         else
           if is_safe query_string
-          then (print "not a search query!" ; std_response)
-          else (print "not safe!" ; std_response)
+          then (printf "not a search query!" ; std_response)
+          else (printf "not safe!" ; std_response)
       in
       send_all client_fd response
     with _ -> send_std_response client_fd
