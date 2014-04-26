@@ -5,6 +5,102 @@ open Prioqueue
 open Graph
 open Order
 
+let std_response_header =
+  "HTTP/1.1 200 OK\r\n" ^
+    "Server: Moogle/0.0\n" ^
+    "content-type: text/html; charset=utf-8\n" ^
+    "Content-Language: en-us\n" ^
+    "Connection: close\n\n"
+;;
+
+let maps_home_page = "./Main.html" ;;
+
+(* read in all the lines from a file and concatenate them into
+ * a big string. *)
+let rec input_lines inchan lines =
+  try
+    input_lines inchan ((input_line inchan)::lines)
+  with End_of_file -> List.rev lines
+;;
+
+(* Read the contents of a webpage.
+ * page : string, a filename*)
+let read_page page =
+  let _ = Printf.printf "reading '%s'\n" page in
+  let _ = flush_all() in
+  let ch = open_in page in
+  let lines = input_lines ch [] in
+  let resp = String.concat ~sep:"" lines in
+    In_channel.close ch ; resp
+;;
+
+(* Build a message that has the default Moogle home page to send
+ * to clients.  The contents of the home page can be found in
+ * the file moogle.html. *)
+let std_response =
+  read_page moogle_home_page
+;;
+
+(* The header for search responses to clients. *)
+let query_response_header =
+  std_response_header ^
+    "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML//EN\">" ^
+    "<html> <head> <title>Moogle Search Results</title></head>" ^
+    "<body><h1>Moogle Search Results:</h1><p><ul>"
+;;
+
+let deoptionalize opt def =
+  match opt with
+    | Some x -> x
+    | None -> def
+;;
+
+(* Convert a set of url's to HTML to splice into the search
+ * response we send to clients. *)
+let html_of_urllist (links: link list) ranks : string =
+  List.fold_left links
+    ~f:(fun s link -> "<li>" ^
+       (Printf.sprintf "%0.*f" 4
+          (deoptionalize (RankDict.lookup ranks link) 0.0)) ^
+       " <a href=\"" ^
+       (href_of_link link) ^ "\">" ^
+       (string_of_link link) ^ "</a></li>" ^ s) ~init:""
+;;
+
+(* The footer for search responses to clients. *)
+let query_response_footer = "</ul><hr></body></html>"
+;;
+
+let send_std_response client_fd =
+  Unix.send client_fd ~buf:std_response ~pos:0 ~len:(String.length std_response) ~mode:[]
+;;
+
+let http_get_re =
+  Str.regexp_case_fold "GET[ \t]+/\\([^ \t]*\\)[ \t]+HTTP/1\\.[0-9]"
+;;
+
+let do_query query_string index ranks =
+  let query = Q.parse_query query_string in
+  let links = Q.eval_query index query in
+  let sorted_links = sort_by_rank links ranks in
+  let response_body = html_of_urllist sorted_links ranks in
+    query_response_header ^ response_body ^ query_response_footer
+
+(* Given a requested path, return the corresponding local path *)
+let local_path qs =
+  Filename.concat root_dir qs
+  
+let send_all fd buf =
+  let rec more st size =
+    let res = Unix.send fd ~buf:buf ~pos:st ~len:size ~mode:[] in
+    if res < size then
+      more (st + res) (size - res)
+    else ()
+  in
+  let size = String.length buf in
+  let _ = more 0 size in size
+;;
+
 let cs124graph = NamedGraph.from_edges 
 		   [("s","a", 2.); ("a","c",1.);("c","e",4.);("s","b",6.);
 		    ("b","d",2.);("d","f",2.);("f","e",1.);("c","f",2.);
