@@ -7,7 +7,6 @@ open Order
 
 (** DJKSTRA FUNCTIONS **)
 
-
 let string_of_list (ls: string list) : string =
   List.fold_right ~init:"" ls ~f:(fun x y -> x ^ "\n" ^ y)
 ;;
@@ -103,7 +102,6 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   in (distance, nodes)
 ;;
 
-
 let server_port = 
   match Array.to_list Sys.argv with
   | [] -> failwith "Please pass in the server port number"
@@ -145,7 +143,7 @@ let std_response =
   read_page maps_home_page
 ;;
 
-(** QUERIES **)
+(** QUERY FUNCTIONS **)
 
   let query_re = Str.regexp "\\?q=\\(.*\\)"
   let term_sep_re = Str.regexp "\\+"
@@ -266,7 +264,7 @@ let server  =
 ;;
 
 (* On startup, create the index and then start the web server loop *)
-let server index ranks =
+let server =
   let _ = Printf.printf "Starting Harvard Maps on port %d.\n" server_port in
   let _ = Printf.printf "Press Ctrl-c to terminate Harvard Maps.\n" in
   let _ = flush_all () in
