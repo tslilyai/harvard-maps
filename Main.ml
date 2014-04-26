@@ -247,7 +247,7 @@ let process_request client_fd request index ranks =
  * prepare it for listening, and then loop, accepting requests and
  * sending responses.
  *)
-let server (index:WordDict.dict) (ranks:RankDict.dict) =
+let server  =
   let fd = Unix.socket ~domain:Unix.PF_INET ~kind:Unix.SOCK_STREAM ~protocol:0 in
   let sock_addr = Unix.ADDR_INET (Unix.Inet_addr.bind_any, server_port) in
   let _ = Unix.setsockopt fd Unix.SO_REUSEADDR true in
@@ -259,7 +259,7 @@ let server (index:WordDict.dict) (ranks:RankDict.dict) =
     let buf = String.create 4096 in
     let len = Unix.recv client_fd ~buf:buf ~pos:0 ~len:(String.length buf) ~mode:[] in
     let request = String.sub buf ~pos:0 ~len:len in
-    let _ = process_request client_fd request index ranks in
+    let _ = process_request client_fd request in
       Unix.close client_fd ;
       server_loop() in
     server_loop()
@@ -270,5 +270,5 @@ let server index ranks =
   let _ = Printf.printf "Starting Harvard Maps on port %d.\n" server_port in
   let _ = Printf.printf "Press Ctrl-c to terminate Harvard Maps.\n" in
   let _ = flush_all () in
-    server index ranks
+    server
 ;;
