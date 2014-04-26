@@ -240,7 +240,7 @@ let process_request client_fd request index ranks =
            do_query query_string index ranks
         else
           if is_safe query_string
-          then read_page (local_path query_string)
+          then (print "not a search query!" ; std_response)
           else (print "not safe!" ; std_response)
       in
       send_all client_fd response
