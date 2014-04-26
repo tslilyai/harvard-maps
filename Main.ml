@@ -5,15 +5,21 @@ open Prioqueue
 open Graph
 open Order
 
+
+let server_port = 
+  match Array.to_list Sys.argv with
+  | [] -> failwith "Please pass in the server port number"
+  | x::_ -> x
+
 let std_response_header =
   "HTTP/1.1 200 OK\r\n" ^
-    "Server: Moogle/0.0\n" ^
+    "Server: Harvard_Maps/0.0\n" ^
     "content-type: text/html; charset=utf-8\n" ^
     "Content-Language: en-us\n" ^
     "Connection: close\n\n"
 ;;
 
-let maps_home_page = "./Main.html" ;;
+let maps_home_page = "./main.html" ;;
 
 (* read in all the lines from a file and concatenate them into
  * a big string. *)
@@ -34,41 +40,23 @@ let read_page page =
     In_channel.close ch ; resp
 ;;
 
-(* Build a message that has the default Moogle home page to send
+(* Build a message that has the default Main home page to send
  * to clients.  The contents of the home page can be found in
- * the file moogle.html. *)
+ * the file Main.html. *)
 let std_response =
-  read_page moogle_home_page
+  read_page maps_home_page
 ;;
 
 (* The header for search responses to clients. *)
 let query_response_header =
   std_response_header ^
     "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML//EN\">" ^
-    "<html> <head> <title>Moogle Search Results</title></head>" ^
-    "<body><h1>Moogle Search Results:</h1><p><ul>"
-;;
-
-let deoptionalize opt def =
-  match opt with
-    | Some x -> x
-    | None -> def
-;;
-
-(* Convert a set of url's to HTML to splice into the search
- * response we send to clients. *)
-let html_of_urllist (links: link list) ranks : string =
-  List.fold_left links
-    ~f:(fun s link -> "<li>" ^
-       (Printf.sprintf "%0.*f" 4
-          (deoptionalize (RankDict.lookup ranks link) 0.0)) ^
-       " <a href=\"" ^
-       (href_of_link link) ^ "\">" ^
-       (string_of_link link) ^ "</a></li>" ^ s) ~init:""
+    "<html> <head> <title>Directions and Distance</title></head>" ^
+    "<body><h1>Directions and Distance:</h1><p>"
 ;;
 
 (* The footer for search responses to clients. *)
-let query_response_footer = "</ul><hr></body></html>"
+let query_response_footer = "<hr></body></html>"
 ;;
 
 let send_std_response client_fd =
@@ -79,11 +67,11 @@ let http_get_re =
   Str.regexp_case_fold "GET[ \t]+/\\([^ \t]*\\)[ \t]+HTTP/1\\.[0-9]"
 ;;
 
-let do_query query_string index ranks =
+let do_query query_string =
   let query = Q.parse_query query_string in
-  let links = Q.eval_query index query in
-  let sorted_links = sort_by_rank links ranks in
-  let response_body = html_of_urllist sorted_links ranks in
+  let (start_pos, end_pos, interm) = extract_params query in
+  let (x, ls) = (dijkstra firstgraph start_pos end_pos interm) in
+  let response_body = (Float.to_string x) ^ (string_of_list ls)
     query_response_header ^ response_body ^ query_response_footer
 
 (* Given a requested path, return the corresponding local path *)
@@ -99,6 +87,82 @@ let send_all fd buf =
   in
   let size = String.length buf in
   let _ = more 0 size in size
+;;
+
+
+(* process a request -- we're expecting a GET followed by a url or a query
+ * "?q=word+word".  If we find a query, then we feed it to the query parser to
+ * get query abstract syntax.  Then we evaluate the query, using the index we
+ * built earlier, to get a set of links.  Then we put the result in an html
+ * document to send back to the client.
+ *
+ * If we find a url, we try to send back the correponding file.
+ *
+ * If we don't understand the request, then we send the default page (which is
+ * just moogle.html in this directory).
+ *)
+let process_request client_fd request index ranks =
+  (*  let _ = Printf.printf "Request: %s\n----\n" request in
+      let _ = flush_all() in *)
+  let is_search qs =
+    let r = Str.regexp_string "?q=" in
+      Str.string_match r qs 0
+  in
+  let is_safe s =
+    (* At least check that the passed in path doesn't contain .. *)
+    let r = Str.regexp_string ".." in
+      try
+        let _ = Str.search_forward r s 0 in
+          false
+      with Not_found -> true
+  in
+    try
+      let _ = Str.search_forward http_get_re request 0 in
+      let query_string = Str.matched_group 1 request in
+      (*
+      let _ = Printf.printf "Query string: '%s'\n\n" query_string in
+      let _ = flush_all() in *)
+      let response =
+        if is_search query_string then
+          (* print "seaching!" ;  *)
+           do_query query_string index ranks
+        else
+          if is_safe query_string
+          then read_page (local_path query_string)
+          else (print "not safe!" ; std_response)
+      in
+      send_all client_fd response
+    with _ -> send_std_response client_fd
+;;
+
+(* open a socket on the server port (specified on the command line),
+ * prepare it for listening, and then loop, accepting requests and
+ * sending responses.
+ *)
+let server (index:WordDict.dict) (ranks:RankDict.dict) =
+  let fd = Unix.socket ~domain:Unix.PF_INET ~kind:Unix.SOCK_STREAM ~protocol:0 in
+  let sock_addr = Unix.ADDR_INET (Unix.Inet_addr.bind_any, server_port) in
+  let _ = Unix.setsockopt fd Unix.SO_REUSEADDR true in
+  let _ = Unix.bind fd ~addr:sock_addr in
+  let _ = Unix.listen fd ~max:5 in  (* at most 5 queued requests *)
+  let rec server_loop () =
+    (* allow a client to connect *)
+    let (client_fd, _) = Unix.accept fd in
+    let buf = String.create 4096 in
+    let len = Unix.recv client_fd ~buf:buf ~pos:0 ~len:(String.length buf) ~mode:[] in
+    let request = String.sub buf ~pos:0 ~len:len in
+    let _ = process_request client_fd request index ranks in
+      Unix.close client_fd ;
+      server_loop() in
+    server_loop()
+;;
+
+(* On startup, create the index and then start the web server loop *)
+let server index ranks =
+  let _ = Printf.printf "Starting Harvard Maps on port %d.\n" server_port in
+  let _ = Printf.printf "Press Ctrl-c to terminate Harvard Maps.\n" in
+  let _ = flush_all () in
+    server index ranks
 ;;
 
 let cs124graph = NamedGraph.from_edges 
@@ -121,8 +185,6 @@ let firstgraph = NamedGraph.from_edges [
 ("Andover", "Ginos", 20.);
 ("Ginos", "Sandrines", 164.);
 ("Yenching", "Sandrines", 177.)]
-
-let cmdargs = Array.to_list Sys.argv;;
 
 module NodeHeapQueue = (BinaryHeap(PtCompare) :
                         PRIOQUEUE with type elt = PtCompare.t)
@@ -189,10 +251,9 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   in let nodes = extract_path final_prev (fin, final_booldict) [fin]
   in (distance, nodes)
 ;;
-  
 
-let rec print_list = function [] -> ()
-  | e::l -> print_string e ; print_string " " ; print_list l;;
+let rec string_of_list (ls: string list) : string
+  List.fold_right ~init::"" ls ~f(fun x y -> x ^ "\n" ^ y)
 
 let build_set (lst: NamedGraph.node list) : DestinationSet.set = 
   List.fold_right lst ~f:(fun x y -> DestinationSet.insert x y)
@@ -205,9 +266,3 @@ let extract_params (lst: string list) : NamedGraph.node * NamedGraph.node * Dest
   match lst with
   | [] |_ :: [] | _ :: _ :: [] -> failwith "not enough params"
   | _ :: hd_1 :: hd_2 :: lst' -> (hd_1, hd_2, build_set lst');;
-
-let (start_pos, end_pos, interm) = extract_params cmdargs;;
-
-let (x, ls) = (dijkstra firstgraph start_pos end_pos interm);;  
-
-print_list (ls);; print_float x;; 
