@@ -107,7 +107,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 let server_port = 
   match Array.to_list Sys.argv with
   | [] -> failwith "Please pass in the server port number"
-  | x::_ -> int_of_string x
+  | _::x::_ -> int_of_string x
 
 let std_response_header =
   "HTTP/1.1 200 OK\r\n" ^
