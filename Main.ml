@@ -205,7 +205,7 @@ let send_all fd buf =
  * If we find a url, we try to send back the correponding file.
  *
  * If we don't understand the request, then we send the default page (which is
- * just moogle.html in this directory).
+ * just Main.html in this directory).
  *)
 let process_request client_fd request index ranks =
   (*  let _ = Printf.printf "Request: %s\n----\n" request in
@@ -245,7 +245,7 @@ let process_request client_fd request index ranks =
  * prepare it for listening, and then loop, accepting requests and
  * sending responses.
  *)
-let server  =
+let server () =
   let fd = Unix.socket ~domain:Unix.PF_INET ~kind:Unix.SOCK_STREAM ~protocol:0 in
   let sock_addr = Unix.ADDR_INET (Unix.Inet_addr.bind_any, server_port) in
   let _ = Unix.setsockopt fd Unix.SO_REUSEADDR true in
@@ -264,7 +264,7 @@ let server  =
 ;;
 
 (* On startup, create the index and then start the web server loop *)
-let server =
+let server () =
   let _ = Printf.printf "Starting Harvard Maps on port %d.\n" server_port in
   let _ = Printf.printf "Press Ctrl-c to terminate Harvard Maps.\n" in
   let _ = flush_all () in
