@@ -7,7 +7,6 @@ open Order
 
 (** DJKSTRA FUNCTIONS **)
 
-
 let string_of_list (ls: string list) : string =
   List.fold_right ~init:"" ls ~f:(fun x y -> x ^ "\n" ^ y)
 ;;
@@ -103,22 +102,22 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   in (distance, nodes)
 ;;
 
-
 (*let server_port = 
+>>>>>>> be0247425ea3fdc0bbb47e18791ffd4034863fd1
   match Array.to_list Sys.argv with
   | [] -> failwith "Please pass in the server port number"
   | _::x::_ -> int_of_string x *)
   
-    let server_port =
-      let args = Sys.argv in
-        try
-          let port = int_of_string(Array.get args 1) in
-            port
-        with
-            exn -> (Printf.printf
-                      "usage: %s <port>\n"
-                      (Array.get args 0) ;
-                    exit 1)
+let server_port =
+  let args = Sys.argv in
+    try
+      let port = int_of_string(Array.get args 1) in
+        port
+    with
+        exn -> (Printf.printf
+                  "usage: %s <port>\n"
+                  (Array.get args 0) ;
+                exit 1)
 
 let std_response_header =
   "HTTP/1.1 200 OK\r\n" ^
@@ -156,7 +155,7 @@ let std_response =
   read_page maps_home_page
 ;;
 
-(** QUERIES **)
+(** QUERY FUNCTIONS **)
 
   let query_re = Str.regexp "\\?q=\\(.*\\)"
 ;;
@@ -223,9 +222,9 @@ let send_all fd buf =
  * If we find a url, we try to send back the correponding file.
  *
  * If we don't understand the request, then we send the default page (which is
- * just moogle.html in this directory).
+ * just Main.html in this directory).
  *)
-let process_request client_fd request index ranks =
+let process_request client_fd request =
   (*  let _ = Printf.printf "Request: %s\n----\n" requestin
       let _ = flush_all() in *)
   let is_search qs =
@@ -263,7 +262,7 @@ let process_request client_fd request index ranks =
  * prepare it for listening, and then loop, accepting requests and
  * sending responses.
  *)
-let server =
+let server () =
   let fd = Unix.socket ~domain:Unix.PF_INET ~kind:Unix.SOCK_STREAM ~protocol:0 in
   let sock_addr = Unix.ADDR_INET (Unix.Inet_addr.bind_any, server_port) in
   let _ = Unix.setsockopt fd Unix.SO_REUSEADDR true in
@@ -282,22 +281,21 @@ let server =
 ;;
 
 (* On startup, create the index and then start the web server loop *)
-let server =
+let server () =
   let _ = Printf.printf "Starting Harvard Maps on port %d.\n" server_port in
   let _ = Printf.printf "Press Ctrl-c to terminate Harvard Maps.\n" in
   let _ = flush_all () in
-    server
+    server ()
 ;;
     
 let main () =
-  (*(* Want different random numbers every time. *)
+  (* Want different random numbers every time. *)
   let _ = Random.self_init () in
     (* Construct the index to pass to the server *)
   let _ = flush_all () in
   let _ = Printf.printf "Starting Harvard Maps on port %d.\n" server_port in
-    server ;; *)
-  (fun () -> ignore(Printf.printf "Starting Harvard Maps on port %d.\n" server_port; flush_all()))
-;;
+    server () 
+  ;; 
 
 main ();;    
 
