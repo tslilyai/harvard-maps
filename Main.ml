@@ -17,8 +17,8 @@ let build_set (lst: NamedGraph.node list) : DestinationSet.set =
 
 let extract_params (lst: string list) : NamedGraph.node * NamedGraph.node * DestinationSet.set =
   match lst with
-  | [] |_ :: [] | _ :: _ :: [] -> failwith "not enough params"
-  | _ :: hd_1 :: hd_2 :: lst' -> (hd_1, hd_2, build_set lst');;
+  | [] |_ :: [] -> failwith "not enough params"
+  | hd_1 :: hd_2 :: lst' -> (hd_1, hd_2, build_set lst');;
 
 let data = NamedGraph.from_edges [
 ("Yenching", "J_August", 49.);
