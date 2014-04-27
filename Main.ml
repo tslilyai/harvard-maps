@@ -256,7 +256,7 @@ let process_request client_fd request index ranks =
           else (Printf.printf "not safe!" ; std_response)
       in
       send_all client_fd response
-    with _ -> Printf.printf "poop"; send_std_response client_fd
+    with _ ->  send_std_response client_fd 
 ;;
 
 (* open a socket on the server port (specified on the command line),

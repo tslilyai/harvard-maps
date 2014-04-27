@@ -153,7 +153,7 @@ let read_page page =
  * to clients.  The contents of the home page can be found in
  * the file Main.html. *)
 let std_response =
-  (* read_page maps_home_page *) Printf.printf "pooping"; maps_home_page
+  read_page maps_home_page
 ;;
 
 (** QUERIES **)
@@ -226,8 +226,8 @@ let send_all fd buf =
  * just moogle.html in this directory).
  *)
 let process_request client_fd request index ranks =
-    let _ = (*Printf.printf "Request: %s\n----\n" request *) Printf.printf "poop" in
-      let _ = flush_all() in 
+  (*  let _ = Printf.printf "Request: %s\n----\n" requestin
+      let _ = flush_all() in *)
   let is_search qs =
     let r = Str.regexp_string "?q=" in
       Str.string_match r qs 0
@@ -256,7 +256,7 @@ let process_request client_fd request index ranks =
           else (Printf.printf "not safe!" ; std_response)
       in
       send_all client_fd response
-    with _ -> Printf.printf "poop"; send_std_response client_fd
+    with _ -> (* send_std_response client_fd *)
 ;;
 
 (* open a socket on the server port (specified on the command line),
