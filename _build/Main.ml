@@ -103,7 +103,6 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 ;;
 
 (*let server_port = 
->>>>>>> be0247425ea3fdc0bbb47e18791ffd4034863fd1
   match Array.to_list Sys.argv with
   | [] -> failwith "Please pass in the server port number"
   | _::x::_ -> int_of_string x *)
@@ -157,7 +156,7 @@ let std_response =
 
 (** QUERY FUNCTIONS **)
 
-  let query_re = Str.regexp "\\?q=\\(.*\\)"
+  let query_re = Str.regexp "\\?begin=\\(.*\\)"
 ;;
 
   let term_sep_re = Str.regexp "\\+"
@@ -198,7 +197,7 @@ let do_query query_string =
   let query = parse_query query_string in
   let (start_pos, end_pos, interm) = extract_params query in
   let (x, ls) = (dijkstra data start_pos end_pos interm) in
-  let response_body = (Float.to_string x) ^ (string_of_list ls) in
+  let response_body = (Float.to_string x) ^ "\n" ^(string_of_list ls) in
     query_response_header ^ response_body ^ query_response_footer
 ;;  
   
@@ -214,7 +213,7 @@ let send_all fd buf =
 ;;
 
 (* process a request -- we're expecting a GET followed by a url or a query
- * "?q=word+word".  If we find a query, then we feed it to the query parser to
+ * "?begin=word+word".  If we find a query, then we feed it to the query parser to
  * get query abstract syntax.  Then we evaluate the query, using the index we
  * built earlier, to get a set of links.  Then we put the result in an html
  * document to send back to the client.
@@ -228,7 +227,7 @@ let process_request client_fd request =
   (*  let _ = Printf.printf "Request: %s\n----\n" requestin
       let _ = flush_all() in *)
   let is_search qs =
-    let r = Str.regexp_string "?q=" in
+    let r = Str.regexp_string "?begin=" in
       Str.string_match r qs 0
   in
   let is_safe s =
