@@ -36,6 +36,11 @@ let data = NamedGraph.from_edges [
 ("Ginos", "Sandrines", 164.);
 ("Yenching", "Sandrines", 177.)]
 
+let location_pts = LocationDict.insert_locations [
+("Yenching", "42.372976, -71.117853")
+("J_August", "42.372872, -71.117717")
+]
+
 module NodeHeapQueue = (BinaryHeap(PtCompare) :
                         PRIOQUEUE with type elt = PtCompare.t)
 
@@ -204,6 +209,30 @@ let http_get_re =
   Str.regexp_case_fold "GET[ \t]+/\\([^ \t]*\\)[ \t]+HTTP/1\\.[0-9]"
 ;;
 
+let string_of_markers ls = 
+  (match ls with
+   | start::fin::tl -> (
+     let start_loc = (
+       match LocationDict.lookup start with
+       | None -> Failure "Location not present"
+       | Some x -> x )
+     in
+     let end_loc = (
+       match LocationDict.lookup fin with
+       |None -> Failure "Location not present"
+       |Some x -> x )
+     in
+     ("&markers=size:mid%7Ccolor:red%7C" ^ start_loc ^ "%7C" ^ end_loc)))
+  | _ -> (Failure "Not enough arguments specified")
+
+let string_of_interms ls = 
+  let rec interms_string interms = 
+    match interms with
+    | [] -> ""
+    | hd::tl -> (match LocationDict.lookup hd with
+                 | None -> Failure "Location not present"
+                 | Some x -> x ^ "%7C" ^ (interms_string tl))
+  in "&path=weight:5%7Ccolor:red%7C" ^ (interms_string ls)
 
 let do_query query_string =
   let query = parse_query query_string in
@@ -211,10 +240,14 @@ let do_query query_string =
   let (x, ls) = (dijkstra data start_pos end_pos interm) in
   let distance = (Float.to_string x) ^ "\n" in
   let destinations = (string_of_list ls) in
+  let start_end_string = (string_of_markers ls) in
+  let interms_string = (string_of_interms ls)
     query_response_header ^ "Distance: " ^ distance ^ "feet" ^ "<br> <br>" 
-    ^ "Directions: " ^ destinations ^ query_response_footer
+    ^ "Directions: " ^ destinations ^ 
+    "<img src=" ^ "\"http://maps.googleapis.com/maps/api/staticmap?center=42.3723504,-71.118163&zoom=17&size=640x640&sensor=false" ^ start_end_string ^ interms_string ^ "\"></img>"
+    ^ query_response_footer
 ;;  
-  
+
 let send_all fd buf =
   let rec more st size =
     let res = Unix.send fd ~buf:buf ~pos:st ~len:size ~mode:[] in
