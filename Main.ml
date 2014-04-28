@@ -156,19 +156,20 @@ let std_response =
 
 (** QUERY FUNCTIONS **)
 
-  let query_re = Str.regexp "\\?begin=\\(.*\\)"
+  let query_re_begin = Str.regexp "\\?begin=\\(.*\\)"
 ;;
 
-  let term_sep_re = Str.regexp "\\+"
+  let term_sep_end = Str.regexp "\\&end="
+  let term_sep_interms = Str.regexp "\\&interms="
 ;;    
 
   (* now returns a list rather than a query *)
   let parse_query s = 
-    if Str.string_match query_re s 0 then 
+    if Str.string_match query_re_begin s 0 then 
       let qs = Str.matched_group 1 s in 
-      let words = Str.split term_sep_re qs 
-      in 
-        words
+      let start::rest = Str.split term_sep_re_end qs in
+      let end::interms = Str.split term_sep_re_interms rest in 
+        start::end::interms
     else raise (Failure "query not understood")
 ;;
 
