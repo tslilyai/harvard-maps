@@ -33,7 +33,7 @@ module PtCompare : COMPARABLE with type t=string * float * BoolDict.dict =
 struct
   type t = string * float * BoolDict.dict
 
-  let compare x y = let (n1, dist1, dict1), (n2, dist2, dict2) = (x, y) in 
+  let compare x y = let (_, dist1, _), (_, dist2, _) = (x, y) in 
 		    if dist1 < dist2 then Less 
 		    else if dist1 > dist2 then Greater 
 		    else Equal

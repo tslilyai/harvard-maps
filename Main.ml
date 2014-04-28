@@ -285,7 +285,6 @@ let main () =
   let _ = Random.self_init () in
     (* Construct the index to pass to the server *)
   let _ = flush_all () in
-  let _ = Printf.printf "Starting Harvard Maps on port %d.\n" server_port in
     server () 
   ;; 
 
