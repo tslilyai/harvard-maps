@@ -791,8 +791,8 @@ module DistDict = Make(
     let compare (x,dx) (y,dy) =
       let i = string_compare x y in 
       if i = Equal then
-	string_compare (BoolDict.string_of_dict dx) (BoolDict.string_of_dict dy)
-      else i	       
+  string_compare (BoolDict.string_of_dict dx) (BoolDict.string_of_dict dy)
+      else i         
     let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
     let string_of_value = Float.to_string
   end)
@@ -804,8 +804,8 @@ module PrevDict = Make(
     let compare (x,dx) (y,dy) =
       let i = string_compare x y in 
       if i = Equal then
-	string_compare (BoolDict.string_of_dict dx) (BoolDict.string_of_dict dy)
-      else i	       
+  string_compare (BoolDict.string_of_dict dx) (BoolDict.string_of_dict dy)
+      else i         
     let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
     let string_of_value (x,dict) = x ^ BoolDict.string_of_dict dict
   end)
@@ -817,6 +817,4 @@ module LocationDict = Make(
     let compare = string_compare
     let string_of_key x = x
     let string_of_value x = x
-    let insert_locations (ls : (string*string) list) : dict =
-      List.fold_left ls ~f:(fun d (k, v) -> insert k v) ~init:empty
   end)

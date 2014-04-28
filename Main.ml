@@ -36,9 +36,12 @@ let data = NamedGraph.from_edges [
 ("Ginos", "Sandrines", 164.);
 ("Yenching", "Sandrines", 177.)]
 
-let location_pts = LocationDict.insert_locations [
-("Yenching", "42.372976, -71.117853")
-("J_August", "42.372872, -71.117717")
+let insert_locations (ls : (string*string) list) : LocationDict.dict =
+  List.fold_left ls ~f:(fun d (k, v) -> LocationDict.insert d k v) ~init:LocationDict.empty
+
+let location_pts = insert_locations [
+("Yenching", "42.372976,-71.117853");
+("J_August", "42.372872,-71.117717")
 ]
 
 module NodeHeapQueue = (BinaryHeap(PtCompare) :
@@ -116,10 +119,6 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   in (distance, nodes)
 ;;
 
-(*let server_port = 
-  match Array.to_list Sys.argv with
-  | [] -> failwith "Please pass in the server port number"
-  | _::x::_ -> int_of_string x *)
   
 let server_port =
   let args = Sys.argv in
@@ -193,8 +192,8 @@ let std_response =
 let query_response_header =
   std_response_header ^
     "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML//EN\">" ^
-    "<html> <head> <title>Directions and Distance</title></head>" ^
-    "<body><h1>Directions and Distance:</h1><p>"
+    "<html> <head> <title align=\"center\">Directions and Distance</title></head>" ^
+    "<body align=\"center\"><h1>Directions and Distance</h1><p>"
 ;;
 
 (* The footer for search responses to clients. *)
@@ -209,42 +208,41 @@ let http_get_re =
   Str.regexp_case_fold "GET[ \t]+/\\([^ \t]*\\)[ \t]+HTTP/1\\.[0-9]"
 ;;
 
-let string_of_markers ls = 
-  (match ls with
-   | start::fin::tl -> (
-     let start_loc = (
-       match LocationDict.lookup start with
-       | None -> Failure "Location not present"
-       | Some x -> x )
-     in
-     let end_loc = (
-       match LocationDict.lookup fin with
-       |None -> Failure "Location not present"
-       |Some x -> x )
-     in
-     ("&markers=size:mid%7Ccolor:red%7C" ^ start_loc ^ "%7C" ^ end_loc)))
-  | _ -> (Failure "Not enough arguments specified")
+let string_of_markers start_pos end_pos = 
+  let start_loc = (
+    match LocationDict.lookup location_pts start_pos with
+    | None -> raise (Failure "Location not present")
+    | Some x -> x )
+  in
+  let end_loc = (
+    match LocationDict.lookup location_pts end_pos with
+    |None -> raise (Failure "Location not present")
+    |Some x -> x )
+  in
+  ("&markers=size:mid%7Clabel:S%7C"  ^ start_loc ^ "&markers=size:mid%7Clabel:E%7C" ^ end_loc)
+;;
 
 let string_of_interms ls = 
   let rec interms_string interms = 
     match interms with
     | [] -> ""
-    | hd::tl -> (match LocationDict.lookup hd with
-                 | None -> Failure "Location not present"
-                 | Some x -> x ^ "%7C" ^ (interms_string tl))
-  in "&path=weight:5%7Ccolor:red%7C" ^ (interms_string ls)
-
+    | hd::tl -> (match LocationDict.lookup location_pts hd with
+                 | None -> raise (Failure "Location not present")
+                 | Some x -> "%7C" ^ x ^ (interms_string tl))
+  in "path=weight:3%7Ccolor:red" ^ (interms_string ls)
+;;
+ 
 let do_query query_string =
   let query = parse_query query_string in
   let (start_pos, end_pos, interm) = extract_params query in
   let (x, ls) = (dijkstra data start_pos end_pos interm) in
   let distance = (Float.to_string x) ^ "\n" in
   let destinations = (string_of_list ls) in
-  let start_end_string = (string_of_markers ls) in
-  let interms_string = (string_of_interms ls)
-    query_response_header ^ "Distance: " ^ distance ^ "feet" ^ "<br> <br>" 
-    ^ "Directions: " ^ destinations ^ 
-    "<img src=" ^ "\"http://maps.googleapis.com/maps/api/staticmap?center=42.3723504,-71.118163&zoom=17&size=640x640&sensor=false" ^ start_end_string ^ interms_string ^ "\"></img>"
+  let start_end_string = (string_of_markers start_pos end_pos) in
+  let interms_string = (string_of_interms query) in
+    query_response_header ^ "Distance: " ^ distance ^ "feet" ^ "<br><table align=\"center\" cellpadding=\"10\"><tr><td valign=\"top\">" 
+    ^ "Directions: " ^ destinations ^ "</td><td> " ^ 
+    "<img src=" ^ "\"http://maps.googleapis.com/maps/api/staticmap?" ^ interms_string ^ "&size=640x640&sensor=false" ^ start_end_string ^ "\"></img></td></tr></table>"
     ^ query_response_footer
 ;;  
 
