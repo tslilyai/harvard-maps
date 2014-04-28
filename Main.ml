@@ -103,7 +103,6 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 ;;
 
 (*let server_port = 
->>>>>>> be0247425ea3fdc0bbb47e18791ffd4034863fd1
   match Array.to_list Sys.argv with
   | [] -> failwith "Please pass in the server port number"
   | _::x::_ -> int_of_string x *)
