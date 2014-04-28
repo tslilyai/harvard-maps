@@ -50,9 +50,12 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   let rec helper (heap: NodeHeapQueue.queue) (dist: DistDict.dict) 
      (prev: PrevDict.dict) 
           : DistDict.dict * PrevDict.dict =
+    (* check if the heap is empty *)
     if NodeHeapQueue.is_empty heap then (dist,prev)
     else 
+    (* take the node with the minimum distance from the heap*)
       let ((v_node,_,v_dict), heap') = NodeHeapQueue.take heap in
+      (* traverse all edges coming from v_node *)
       match NamedGraph.neighbors graph v_node with
       | None -> failwith "Neighborless node, impossible in our graph"
       | Some lst ->
@@ -61,6 +64,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
        lst 
        ~f:(fun w (h,d,p) -> 
      let (w_node,w_length) = w in
+     (* check if the neighbor is one of the intermediate nodes *)
      let w_dict = 
        if DestinationSet.member interm w_node
        then BoolDict.insert v_dict w_node true
@@ -86,9 +90,14 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
      | _, None -> failwith("There should always be a distv"))
        ~init: (heap',dist,prev) in 
    helper newheap newdist newprev in
-  let initial_heap = (NodeHeapQueue.add (s,0.,BoolDict.empty) 
+  (* check if the start node is one of the intermediate nodes *)
+  let s_dict = 
+       if DestinationSet.member interm s
+       then BoolDict.insert BoolDict.empty s true
+       else BoolDict.empty in
+  let initial_heap = (NodeHeapQueue.add (s,0.,s_dict) 
           NodeHeapQueue.empty) in
-  let initial_dist = DistDict.insert DistDict.empty (s,BoolDict.empty) 0. in
+  let initial_dist = DistDict.insert DistDict.empty (s,s_dict) 0. in
   let initial_prev = PrevDict.empty in                
   let (final_dist,final_prev) = (helper initial_heap initial_dist
           initial_prev) in
@@ -234,7 +243,7 @@ let process_request client_fd request =
       let _ = Printf.printf "Query string: '%s'\n\n" query_string in
       let _ = flush_all() in 
       let response =
-           Printf.printf "seaching!" ;  
+           (*Printf.printf "seaching!" ;  *)
            do_query query_string
       in
       send_all client_fd response

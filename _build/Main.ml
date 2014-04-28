@@ -8,7 +8,7 @@ open Order
 (** DJKSTRA FUNCTIONS **)
 
 let string_of_list (ls: string list) : string =
-  List.fold_right ~init:"" ls ~f:(fun x y -> x ^ "\n" ^ y)
+  "<ol>" ^ List.fold_right ~init:"</ol>" ls ~f:(fun x y -> "<li>" ^ x ^ y)
 ;;
 
 let build_set (lst: NamedGraph.node list) : DestinationSet.set = 
@@ -50,9 +50,12 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   let rec helper (heap: NodeHeapQueue.queue) (dist: DistDict.dict) 
      (prev: PrevDict.dict) 
           : DistDict.dict * PrevDict.dict =
+    (* check if the heap is empty *)
     if NodeHeapQueue.is_empty heap then (dist,prev)
     else 
+    (* take the node with the minimum distance from the heap*)
       let ((v_node,_,v_dict), heap') = NodeHeapQueue.take heap in
+      (* traverse all edges coming from v_node *)
       match NamedGraph.neighbors graph v_node with
       | None -> failwith "Neighborless node, impossible in our graph"
       | Some lst ->
@@ -61,6 +64,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
        lst 
        ~f:(fun w (h,d,p) -> 
      let (w_node,w_length) = w in
+     (* check if the neighbor is one of the intermediate nodes *)
      let w_dict = 
        if DestinationSet.member interm w_node
        then BoolDict.insert v_dict w_node true
@@ -86,9 +90,14 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
      | _, None -> failwith("There should always be a distv"))
        ~init: (heap',dist,prev) in 
    helper newheap newdist newprev in
-  let initial_heap = (NodeHeapQueue.add (s,0.,BoolDict.empty) 
+  (* check if the start node is one of the intermediate nodes *)
+  let s_dict = 
+       if DestinationSet.member interm s
+       then BoolDict.insert BoolDict.empty s true
+       else BoolDict.empty in
+  let initial_heap = (NodeHeapQueue.add (s,0.,s_dict) 
           NodeHeapQueue.empty) in
-  let initial_dist = DistDict.insert DistDict.empty (s,BoolDict.empty) 0. in
+  let initial_dist = DistDict.insert DistDict.empty (s,s_dict) 0. in
   let initial_prev = PrevDict.empty in                
   let (final_dist,final_prev) = (helper initial_heap initial_dist
           initial_prev) in
@@ -156,19 +165,22 @@ let std_response =
 
 (** QUERY FUNCTIONS **)
 
-  let query_re = Str.regexp "\\?begin=\\(.*\\)"
+  let query_re_begin = Str.regexp "\\?begin=\\(.*\\)"
 ;;
 
-  let term_sep_re = Str.regexp "\\+"
+  let term_sep_re_end = Str.regexp "\\&end="
+  let term_sep_re_interms = Str.regexp "\\&interms="
 ;;    
 
   (* now returns a list rather than a query *)
   let parse_query s = 
-    if Str.string_match query_re s 0 then 
+    if Str.string_match query_re_begin s 0 then 
       let qs = Str.matched_group 1 s in 
-      let words = Str.split term_sep_re qs 
-      in 
-        words
+      match Str.split term_sep_re_end qs with
+      | start::rest::[] -> 
+   let args = Str.split term_sep_re_interms rest in 
+         start::args
+      | _ -> raise (Failure "No start or end specified!")
     else raise (Failure "query not understood")
 ;;
 
@@ -197,8 +209,10 @@ let do_query query_string =
   let query = parse_query query_string in
   let (start_pos, end_pos, interm) = extract_params query in
   let (x, ls) = (dijkstra data start_pos end_pos interm) in
-  let response_body = (Float.to_string x) ^ "\n" ^(string_of_list ls) in
-    query_response_header ^ response_body ^ query_response_footer
+  let distance = (Float.to_string x) ^ "\n" in
+  let destinations = (string_of_list ls) in
+    query_response_header ^ "Distance: " ^ distance ^ "feet" ^ "<br> <br>" 
+    ^ "Directions: " ^ destinations ^ query_response_footer
 ;;  
   
 let send_all fd buf =
@@ -218,26 +232,10 @@ let send_all fd buf =
  * built earlier, to get a set of links.  Then we put the result in an html
  * document to send back to the client.
  *
- * If we find a url, we try to send back the correponding file.
- *
- * If we don't understand the request, then we send the default page (which is
- * just Main.html in this directory).
  *)
 let process_request client_fd request =
   (*  let _ = Printf.printf "Request: %s\n----\n" requestin
       let _ = flush_all() in *)
-  let is_search qs =
-    let r = Str.regexp_string "?begin=" in
-      Str.string_match r qs 0
-  in
-  let is_safe s =
-    (* At least check that the passed in path doesn't contain .. *)
-    let r = Str.regexp_string ".." in
-      try
-        let _ = Str.search_forward r s 0 in
-          false
-      with Not_found -> true
-  in
     try
       let _ = Str.search_forward http_get_re request 0 in
       let query_string = Str.matched_group 1 request in
@@ -245,13 +243,8 @@ let process_request client_fd request =
       let _ = Printf.printf "Query string: '%s'\n\n" query_string in
       let _ = flush_all() in 
       let response =
-        if is_search query_string then
            (*Printf.printf "seaching!" ;  *)
            do_query query_string
-        else
-          if is_safe query_string
-          then (Printf.printf "not a search query!" ; std_response)
-          else (Printf.printf "not safe!" ; std_response)
       in
       send_all client_fd response
     with _ ->  send_std_response client_fd 
