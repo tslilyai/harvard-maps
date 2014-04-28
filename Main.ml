@@ -273,8 +273,8 @@ let process_request client_fd request =
       let _ = Str.search_forward http_get_re request 0 in
       let query_string = Str.matched_group 1 request in
       
-      let _ = Printf.printf "Query string: '%s'\n\n" query_string in
-      let _ = flush_all() in 
+      (*let _ = Printf.printf "Query string: '%s'\n\n" query_string in
+      let _ = flush_all() in *)
       let response =
            (*Printf.printf "seaching!" ;  *)
            do_query query_string
