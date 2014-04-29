@@ -27,8 +27,8 @@ let data = NamedGraph.from_edges [
 ("JP_Licks", "Gnomon", 26.);
 ("Felix", "Gnomon", 16.);
 ("Felix", "Zinnia", 49.);
-("Zinnia", "STA_Travel", 528.);
-("Tennis", "STA_Travel", 151.);
+("Zinnia", "Claverly", 528.);
+("Tennis", "Claverly", 151.);
 ("Tennis", "Boloco", 20.);
 ("Boloco", "Spice", 138.);
 ("Spice", "Andover", 33.);
@@ -41,7 +41,19 @@ let insert_locations (ls : (string*string) list) : LocationDict.dict =
 
 let location_pts = insert_locations [
 ("Yenching", "42.372976,-71.117853");
-("J_August", "42.372872,-71.117717")
+("J_August", "42.372872,-71.117717");
+("Boloco", "42.372038,-71.11829");
+("JP_Licks","42.372922,-71.117552");
+("Leavitt","42.372912,-71.117641");
+("Gnomon","42.372888,-71.117458");
+("Zinnia","42.372823,-71.11727");
+("Spice","42.372181,-71.118386");
+("Andover","42.372264,-71.11833");
+("Ginos","42.372319,-71.118263");
+("Tennis","42.37199,-71.118287");
+("Sandrines","42.372731,-71.118048");
+("Felix","42.372882,-71.117426");
+("Claverly","42.371915,-71.117734")
 ]
 
 module NodeHeapQueue = (BinaryHeap(PtCompare) :
@@ -222,6 +234,7 @@ let string_of_markers start_pos end_pos =
   ("&markers=size:mid%7Clabel:S%7C"  ^ start_loc ^ "&markers=size:mid%7Clabel:E%7C" ^ end_loc)
 ;;
 
+(* I changed these to markers *)
 let string_of_interms ls = 
   let rec interms_string interms = 
     match interms with
@@ -229,7 +242,18 @@ let string_of_interms ls =
     | hd::tl -> (match LocationDict.lookup location_pts hd with
                  | None -> raise (Failure "Location not present")
                  | Some x -> "%7C" ^ x ^ (interms_string tl))
-  in "path=weight:3%7Ccolor:red" ^ (interms_string ls)
+  in "&markers=size:mid%7Clabel:I%7C" ^ (interms_string ls)
+;;
+
+(* Here we can trace out the path itself *) 
+let string_of_path node_list = 
+  let rec node_string nodes = 
+    match nodes with
+    | [] -> ""
+    | hd::tl -> (match LocationDict.lookup location_pts hd with
+                 | None -> raise (Failure "Location not present")
+                 | Some x -> "%7C" ^ x ^ (node_string tl))
+  in "path=weight:3%7Ccolor:red" ^ (node_string node_list)
 ;;
  
 let do_query query_string =
@@ -240,9 +264,10 @@ let do_query query_string =
   let destinations = (string_of_list ls) in
   let start_end_string = (string_of_markers start_pos end_pos) in
   let interms_string = (string_of_interms query) in
+  let path_string = (string_of_path ls) in
     query_response_header ^ "Distance: " ^ distance ^ "feet" ^ "<br><table align=\"center\" cellpadding=\"10\"><tr><td valign=\"top\">" 
     ^ "Directions: " ^ destinations ^ "</td><td> " ^ 
-    "<img src=" ^ "\"http://maps.googleapis.com/maps/api/staticmap?" ^ interms_string ^ "&size=640x640&sensor=false" ^ start_end_string ^ "\"></img></td></tr></table>"
+    "<img src=" ^ "\"http://maps.googleapis.com/maps/api/staticmap?" ^ path_string ^ "&size=640x640&sensor=false" ^ start_end_string ^ interms_string ^ "\"></img></td></tr></table>"
     ^ query_response_footer
 ;;  
 

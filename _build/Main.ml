@@ -27,14 +27,34 @@ let data = NamedGraph.from_edges [
 ("JP_Licks", "Gnomon", 26.);
 ("Felix", "Gnomon", 16.);
 ("Felix", "Zinnia", 49.);
-("Zinnia", "STA_Travel", 528.);
-("Tennis", "STA_Travel", 151.);
+("Zinnia", "Claverly", 528.);
+("Tennis", "Claverly", 151.);
 ("Tennis", "Boloco", 20.);
 ("Boloco", "Spice", 138.);
 ("Spice", "Andover", 33.);
 ("Andover", "Ginos", 20.);
 ("Ginos", "Sandrines", 164.);
 ("Yenching", "Sandrines", 177.)]
+
+let insert_locations (ls : (string*string) list) : LocationDict.dict =
+  List.fold_left ls ~f:(fun d (k, v) -> LocationDict.insert d k v) ~init:LocationDict.empty
+
+let location_pts = insert_locations [
+("Yenching", "42.372976,-71.117853");
+("J_August", "42.372872,-71.117717");
+("Boloco", "42.372038,-71.11829");
+("JP_Licks","42.372922,-71.117552");
+("Leavitt","42.372912,-71.117641");
+("Gnomon","42.372888,-71.117458");
+("Zinnia","42.372823,-71.11727");
+("Spice","42.372181,-71.118386");
+("Andover","42.372264,-71.11833");
+("Ginos","42.372319,-71.118263");
+("Tennis","42.37199,-71.118287");
+("Sandrines","42.372731,-71.118048");
+("Felix","42.372882,-71.117426");
+("Claverly","42.371915,-71.117734")
+]
 
 module NodeHeapQueue = (BinaryHeap(PtCompare) :
                         PRIOQUEUE with type elt = PtCompare.t)
@@ -111,10 +131,6 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   in (distance, nodes)
 ;;
 
-(*let server_port = 
-  match Array.to_list Sys.argv with
-  | [] -> failwith "Please pass in the server port number"
-  | _::x::_ -> int_of_string x *)
   
 let server_port =
   let args = Sys.argv in
@@ -188,8 +204,8 @@ let std_response =
 let query_response_header =
   std_response_header ^
     "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML//EN\">" ^
-    "<html> <head> <title>Directions and Distance</title></head>" ^
-    "<body><h1>Directions and Distance:</h1><p>"
+    "<html> <head> <title align=\"center\">Directions and Distance</title></head>" ^
+    "<body align=\"center\"><h1>Directions and Distance</h1><p>"
 ;;
 
 (* The footer for search responses to clients. *)
@@ -204,17 +220,57 @@ let http_get_re =
   Str.regexp_case_fold "GET[ \t]+/\\([^ \t]*\\)[ \t]+HTTP/1\\.[0-9]"
 ;;
 
+let string_of_markers start_pos end_pos = 
+  let start_loc = (
+    match LocationDict.lookup location_pts start_pos with
+    | None -> raise (Failure "Location not present")
+    | Some x -> x )
+  in
+  let end_loc = (
+    match LocationDict.lookup location_pts end_pos with
+    |None -> raise (Failure "Location not present")
+    |Some x -> x )
+  in
+  ("&markers=size:mid%7Clabel:S%7C"  ^ start_loc ^ "&markers=size:mid%7Clabel:E%7C" ^ end_loc)
+;;
 
+(* I changed these to markers *)
+let string_of_interms ls = 
+  let rec interms_string interms = 
+    match interms with
+    | [] -> ""
+    | hd::tl -> (match LocationDict.lookup location_pts hd with
+                 | None -> raise (Failure "Location not present")
+                 | Some x -> "%7C" ^ x ^ (interms_string tl))
+  in "&markers=size:mid%7Clabel:I%7C" ^ (interms_string ls)
+;;
+
+(* Here we can trace out the path itself *) 
+let string_of_path node_list = 
+  let rec node_string nodes = 
+    match nodes with
+    | [] -> ""
+    | hd::tl -> (match LocationDict.lookup location_pts hd with
+                 | None -> raise (Failure "Location not present")
+                 | Some x -> "%7C" ^ x ^ (node_string tl))
+  in "path=weight:3%7Ccolor:red" ^ (node_string node_list)
+;;
+ 
 let do_query query_string =
   let query = parse_query query_string in
   let (start_pos, end_pos, interm) = extract_params query in
   let (x, ls) = (dijkstra data start_pos end_pos interm) in
   let distance = (Float.to_string x) ^ "\n" in
   let destinations = (string_of_list ls) in
-    query_response_header ^ "Distance: " ^ distance ^ "feet" ^ "<br> <br>" 
-    ^ "Directions: " ^ destinations ^ query_response_footer
+  let start_end_string = (string_of_markers start_pos end_pos) in
+  let interms_string = (string_of_interms query) in
+  let path_string = (string_of_path ls) in
+    query_response_header ^ "Distance: " ^ distance ^ "feet" ^ "<br><table align=\"center\" cellpadding=\"10\"><tr><td valign=\"top\">" 
+    ^ "Directions: " ^ destinations ^ "</td><td> " ^ 
+    "<img src=" ^ "\"http://maps.googleapis.com/maps/api/staticmap?" ^ path_string ^ "&size=640x640&sensor=false" ^ start_end_string ^ interms_string ^ "\"></img></td></tr></table>"
+    ^ query_response_footer
 ;;  
-  
+
 let send_all fd buf =
   let rec more st size =
     let res = Unix.send fd ~buf:buf ~pos:st ~len:size ~mode:[] in
