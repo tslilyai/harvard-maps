@@ -235,6 +235,7 @@ let string_of_markers start_pos end_pos =
 ;;
 
 (* I changed these to markers *)
+
 let string_of_interms ls = 
   let rec interms_string interms = 
     match interms with
@@ -244,6 +245,16 @@ let string_of_interms ls =
                  | Some x -> "%7C" ^ x ^ (interms_string tl))
   in "&markers=size:mid%7Clabel:I%7C" ^ (interms_string ls)
 ;;
+
+(* Note: this is not in order.
+let rec string_of_interms ls n = 
+  match ls with
+  | [] -> ""
+  | hd::tl -> (match LocationDict.lookup location_pts hd with
+                 | None -> raise (Failure "Location not present")
+                 | Some x -> "&markers=size:mid%7Clabel:"^ string_of_int n ^"%7C" ^ x ^ (string_of_interms tl (n-1)))
+;;
+*)
 
 (* Here we can trace out the path itself *) 
 let string_of_path node_list = 
@@ -263,7 +274,7 @@ let do_query query_string =
   let distance = (Float.to_string x) ^ "\n" in
   let destinations = (string_of_list ls) in
   let start_end_string = (string_of_markers start_pos end_pos) in
-  let interms_string = (string_of_interms query) in
+  let interms_string = (string_of_interms query (*(List.length(query))*)) in
   let path_string = (string_of_path ls) in
     query_response_header ^ "Distance: " ^ distance ^ "feet" ^ "<br><table align=\"center\" cellpadding=\"10\"><tr><td valign=\"top\">" 
     ^ "Directions: " ^ destinations ^ "</td><td> " ^ 
