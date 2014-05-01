@@ -210,14 +210,12 @@ struct
   let string_of_key = D.string_of_key
   let string_of_value = D.string_of_value
   let string_of_dict (d: dict) : string =
-    fold (fun k v rest ->
-      (*(string_of_key k) *)(*^ " -> "*) (*^*) (string_of_value v) (*^ "\n"*) ^ rest)
-      "" d
+    fold (fun _ v rest -> (string_of_value v) ^ rest) "" d
   (* Upward phase for w where its parent is a Two node whose (key,value) is x.
    * One of x's children is w, and the other child is x_other. This function
    * should return a kicked-up configuration containing the new tree as a
    * result of performing the upward phase on w. *)
-  let insert_upward_two (w: pair) (w_left: dict) (w_right: dict)
+   let insert_upward_two (w: pair) (w_left: dict) (w_right: dict)
       (x: pair) (x_other: dict) : kicked =
     let (w_key,_) = w in
     let (x_key,_) = x in
@@ -769,7 +767,7 @@ module DistDict = Make(
         let dx_string = BoolDict.string_of_dict dx in
         let dy_string = BoolDict.string_of_dict dy in
         if String.length(dx_string) = String.length(dy_string) then
-            let is_equal = BoolDict.fold (fun key value y -> ((BoolDict.lookup dx key) = (BoolDict.lookup dy key)) && y) true dx in
+            let is_equal = BoolDict.fold (fun key _ y -> ((BoolDict.lookup dx key) = (BoolDict.lookup dy key)) && y) true dx in
             if is_equal then Equal
             else string_compare dx_string dy_string
         else string_compare dx_string dy_string
@@ -793,7 +791,7 @@ module PrevDict = Make(
         let dx_string = BoolDict.string_of_dict dx in
         let dy_string = BoolDict.string_of_dict dy in
         if String.length(dx_string) = String.length(dy_string) then
-            let is_equal = BoolDict.fold (fun key value y -> ((BoolDict.lookup dx key) = (BoolDict.lookup dy key)) && y) true dx in
+            let is_equal = BoolDict.fold (fun key _ y -> ((BoolDict.lookup dx key) = (BoolDict.lookup dy key)) && y) true dx in
             if is_equal then Equal
             else string_compare dx_string dy_string
         else string_compare dx_string dy_string

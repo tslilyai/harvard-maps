@@ -157,7 +157,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   in (distance, nodes)
 ;;
 
-(* Tests for our modified dijkstra's *)
+(* Tests for our modified dijkstra's - yay corner cases! *)
 assert(dijkstra cs124graph "s" "a" DestinationSet.empty = (2.,["s";"a"]));;
 assert(dijkstra cs124graph "s" "s" DestinationSet.empty = (0.,["s"]));;
 assert(dijkstra cs124graph "s" "f" DestinationSet.empty = (5.,["s";"a";"c";"f"]));;
@@ -165,19 +165,20 @@ assert(dijkstra cs124graph "s" "s" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (
 assert(dijkstra cs124graph "s" "a" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (13., ["s";"a";"c";"b";"d";"f";"e";"f";"c";"a"]));; 
 assert(dijkstra cs124graph "c" "f" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (15., ["c";"b";"c";"a";"c";"b";"c";"a";"c";"a";"c";"b";"d";"f"]));;
 assert(dijkstra cs124graph "s" "e" (build_set ["s"]) = (6., ["s";"a";"c";"f";"e"]));;  
+assert(dijkstra cs124graph "s" "e" (build_set ["e"]) = (6., ["s";"a";"c";"f";"e"]));;  
 assert(dijkstra cs124graph "s" "s" (build_set ["s"]) = (0., ["s"]));;
 assert(dijkstra cs124graph "s" "e" (build_set ["b"]) = (8., ["s";"a";"c";"b";"c";"f";"e"]));;
 assert(dijkstra cs124graph "s" "e" (build_set ["b";"c"]) = (8., ["s";"a";"c";"b";"c";"f";"e"]));;
 
 (* Print function for testing *)
-
+(*
  let rec print_list = function [] -> ()
    | e::l -> print_string e ; print_string " " ; print_list l;;
 
 let (x, ls) = (dijkstra cs124graph "s" "e" 
 				    (build_set ["e"])) in
     print_list (ls); print_float x;; 
-
+*)
 
 (* Get the server port number, usally 8080 *)
 let server_port =
@@ -235,6 +236,7 @@ let std_response =
 ;;
   let term_sep_re_interms = Str.regexp "\\&interms="
 ;;    
+
 
   (* Tturns a list of the provided arguments *)
   let parse_query s = 
@@ -314,7 +316,7 @@ let do_query query_string =
   let distance = (Float.to_string x) ^ "\n" in
   let destinations = (string_of_list ls) in
   let start_end_string = (string_of_markers start_pos end_pos) in
-  let interms_string = (string_of_interms query (*(List.length(query))*)) in
+  let interms_string = (string_of_interms query) in
   let path_string = (string_of_path ls) in
     query_response_header ^ "Distance: " ^ distance ^ "feet" ^ "<br><table align=\"center\" cellpadding=\"10\"><tr><td valign=\"top\">" 
     ^ "Directions: " ^ destinations ^ "</td><td> " ^ 
