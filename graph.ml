@@ -211,13 +211,13 @@ end
 
 
 (* Graph for testing from Jelani's lecture notes *)
-let cs124graph = NamedGraph.from_edges 
+let cs124graph = DataGraph.from_edges 
        [("s","a", 2.); ("a","c",1.);("c","e",4.);("s","b",6.);
         ("b","d",2.);("d","f",2.);("f","e",1.);("c","f",2.);
         ("c","b",1.);("b","a",5.)];;
 
 (* Create our graph *)
-let data = NamedGraph.from_edges [
+let data = DataGraph.from_edges [
 ("Yenching", "J_August", 49.);
 ("J_August", "Leavitt", 36.);
 ("Leavitt", "JP_Licks", 3.);
