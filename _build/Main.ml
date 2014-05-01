@@ -7,10 +7,6 @@ open Order
 
 (** DJKSTRA FUNCTIONS **)
 
-(* Turn a list into a string *)
-let string_of_list (ls: string list) : string =
-  "<ol>" ^ List.fold_right ~init:"</ol>" ls ~f:(fun x y -> "<li>" ^ x ^ y)
-;;
 
 (* Insert nodes into a set *)
 let build_set (lst: NamedGraph.node list) : DestinationSet.set = 
@@ -46,7 +42,38 @@ let data = NamedGraph.from_edges [
 ("Spice", "Andover", 33.);
 ("Andover", "Ginos", 20.);
 ("Ginos", "Sandrines", 164.);
-("Yenching", "Sandrines", 177.)]
+("Yenching", "Sandrines", 177.);
+("University_hall","Weld", 184.);
+("Weld","Grays", 112.);
+("Grays","Boylston", 121.);
+("Boylston","Wigglesworth",200.);
+("Wigglesworth","Lamont",479.);
+("Lamont","Widener",456.);
+("Wigglesworth","Widener",420.);
+("Widener","Emerson",230.);
+("Emerson","Sever",217.);
+("Widener","Sever",249.);
+("Weld","Widener", 384.);
+("Widener","Mem_church",400.);
+("Grays","Matthews", 190.);
+("Grays","Mass_hall", 240.);
+("Grays","University_hall",285.);
+("Mass_hall","University_hall", 325.);
+("Grays","Straus", 92.);
+("Straus","Mass_hall", 246.);
+("Lamont","Emerson",482.);
+("Mem_church","Canaday", 226.);
+("Thayer","Holworthy",161.);
+("Thayer","Canaday",180.);
+("Holworthy","Stoughton",157.);
+("Stoughton","Hollis",112.);
+("Stoughton","Mower",144.);
+("Mower","Lionel",171.);
+("Lionel","Hollis",144.);
+("Mass_hall","Hollis",295.);
+("Yenching","Wigglesworth",240.)
+]
+
 ;;
 
 (* Inserts location-coordinate key-value pairs into the dictionary *)
@@ -69,7 +96,27 @@ let location_pts = insert_locations [
 ("Tennis","42.37199,-71.118287");
 ("Sandrines","42.372731,-71.118048");
 ("Felix","42.372882,-71.117426");
-("Claverly","42.371915,-71.117734")
+("Claverly","42.371915,-71.117734");
+("Wigglesworth","42.37309,-71.117164");
+("Lamont","42.372722,-71.115501");
+("Widener","42.373284,-71.11652");
+("Boylston","42.373371,-71.117319");
+("Grays","42.373665,-71.117797");
+("Matthews","42.374097,-71.11814");
+("Emerson","42.373891,-71.115254");
+("Sever","42.374374,-71.115522");
+("Mem_church","42.374941,-71.115924");
+("Thayer","42.37506,-71.116734");
+("Mass_Hall","42.374477,-71.118328");
+("Straus", "42.37418,-71.118607");
+("Hollis","42.375004,-71.117845");
+("Stoughton","42.375369,-71.117743");
+("Mower","42.375464,-71.118247");
+("Lionel","42.375155,-71.118354");
+("Canaday","42.375341,-71.116037");
+("University_hall","42.374497,-71.117078");
+("Weld","42.373994,-71.117126");
+("Holworthy","42.375519,-71.117115")
 ]
 ;;
 
@@ -296,6 +343,12 @@ let string_of_interms ls =
   in "&markers=size:mid%7Ccolor:green%7Clabel:.%7C" ^ (interms_string ls)
 ;;
 
+(* Turn a list into a string *)
+let string_of_list (ls: string list) (interms: DestinationSet.set): string =
+  "<ol>" ^ List.fold_right ~init:"</ol>" ls ~f:(fun x y -> 
+                                                    if DestinationSet.member interms x then
+                                    "<li>" ^ "<font color="^"green"^">"^x ^"</font>"^ y
+                                    else "<li>" ^ x ^ y)
 
 (* Here we can trace out the path itself *) 
 let string_of_path node_list = 
@@ -314,7 +367,7 @@ let do_query query_string =
   let (start_pos, end_pos, interm) = extract_params query in
   let (x, ls) = (dijkstra data start_pos end_pos interm) in
   let distance = (Float.to_string x) ^ "\n" in
-  let destinations = (string_of_list ls) in
+  let destinations = (string_of_list ls interm) in
   let start_end_string = (string_of_markers start_pos end_pos) in
   let interms_string = (string_of_interms query) in
   let path_string = (string_of_path ls) in

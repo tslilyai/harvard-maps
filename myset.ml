@@ -72,8 +72,7 @@ end
 
 
 
-(* An example implementation of our COMPARABLE signature. Use this
- * struct for testing. *)
+(* For Testing*)
 module IntComparable : COMPARABLE =
 struct
   open Order
