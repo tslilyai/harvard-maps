@@ -7,19 +7,25 @@ open Order
 
 (** DJKSTRA FUNCTIONS **)
 
+(* Turn a list into a string *)
 let string_of_list (ls: string list) : string =
   "<ol>" ^ List.fold_right ~init:"</ol>" ls ~f:(fun x y -> "<li>" ^ x ^ y)
 ;;
 
+(* Insert nodes into a set *)
 let build_set (lst: NamedGraph.node list) : DestinationSet.set = 
   List.fold_right lst ~f:(fun x y -> DestinationSet.insert x y)
-      ~init:DestinationSet.empty ;;
+      ~init:DestinationSet.empty 
+    ;;
 
+(* Extract the start, end, and intermediate locations *)
 let extract_params (lst: string list) : NamedGraph.node * NamedGraph.node * DestinationSet.set =
   match lst with
   | [] |_ :: [] -> failwith "not enough params"
-  | hd_1 :: hd_2 :: lst' -> (hd_1, hd_2, build_set lst');;
+  | hd_1 :: hd_2 :: lst' -> (hd_1, hd_2, build_set lst')
+;;
 
+(* Create our graph *)
 let data = NamedGraph.from_edges [
 ("Yenching", "J_August", 49.);
 ("J_August", "Leavitt", 36.);
@@ -35,10 +41,14 @@ let data = NamedGraph.from_edges [
 ("Andover", "Ginos", 20.);
 ("Ginos", "Sandrines", 164.);
 ("Yenching", "Sandrines", 177.)]
+;;
 
+(* Inserts location-coordinate key-value pairs into the dictionary *)
 let insert_locations (ls : (string*string) list) : LocationDict.dict =
   List.fold_left ls ~f:(fun d (k, v) -> LocationDict.insert d k v) ~init:LocationDict.empty
+;;
 
+(* Insert coordinates of each location into LocationDict *)
 let location_pts = insert_locations [
 ("Yenching", "42.372976,-71.117853");
 ("J_August", "42.372872,-71.117717");
@@ -55,10 +65,14 @@ let location_pts = insert_locations [
 ("Felix","42.372882,-71.117426");
 ("Claverly","42.371915,-71.117734")
 ]
+;;
 
+(* Initialize our min-priority queue *)
 module NodeHeapQueue = (BinaryHeap(PtCompare) :
                         PRIOQUEUE with type elt = PtCompare.t)
+;;
 
+(* The modified dijkstra function *)
 let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.node) 
        (interm: DestinationSet.set) 
     : (float * NamedGraph.node list)=
@@ -73,7 +87,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
     (* check if the heap is empty *)
     if NodeHeapQueue.is_empty heap then (dist,prev)
     else 
-    (* take the node with the minimum distance from the heap*)
+    (* take the node with the minimum distance from the heap *)
       let ((v_node,_,v_dict), heap') = NodeHeapQueue.take heap in
       (* traverse all edges coming from v_node *)
       match NamedGraph.neighbors graph v_node with
@@ -115,23 +129,28 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
        if DestinationSet.member interm s
        then BoolDict.insert BoolDict.empty s true
        else BoolDict.empty in
+  (* initial heap, dist, and prev *)
   let initial_heap = (NodeHeapQueue.add (s,0.,s_dict) 
           NodeHeapQueue.empty) in
   let initial_dist = DistDict.insert DistDict.empty (s,s_dict) 0. in
-  let initial_prev = PrevDict.empty in                
+  let initial_prev = PrevDict.empty in
+  (* run the helper function on our initial values *)                
   let (final_dist,final_prev) = (helper initial_heap initial_dist
           initial_prev) in
+  (* add all the intermediate destinations as keys and "visited" bools as values *)
   let final_booldict = DestinationSet.fold 
        (fun node dict -> BoolDict.insert dict node true) 
        BoolDict.empty interm in
+  (* get the shortest distance of our path *)
   let distance = match DistDict.lookup final_dist (fin, final_booldict) with
                 | None -> failwith ("Unreachable destination")
                 | Some d -> d
+  (* extract the shortest path *)
   in let nodes = extract_path final_prev (fin, final_booldict) [fin]
   in (distance, nodes)
 ;;
 
-  
+(* Get the server port number, uusally 8080 *)
 let server_port =
   let args = Sys.argv in
     try
@@ -183,12 +202,12 @@ let std_response =
 
   let query_re_begin = Str.regexp "\\?begin=\\(.*\\)"
 ;;
-
   let term_sep_re_end = Str.regexp "\\&end="
+;;
   let term_sep_re_interms = Str.regexp "\\&interms="
 ;;    
 
-  (* now returns a list rather than a query *)
+  (* Tturns a list of the provided arguments *)
   let parse_query s = 
     if Str.string_match query_re_begin s 0 then 
       let qs = Str.matched_group 1 s in 
@@ -220,6 +239,7 @@ let http_get_re =
   Str.regexp_case_fold "GET[ \t]+/\\([^ \t]*\\)[ \t]+HTTP/1\\.[0-9]"
 ;;
 
+(* Markers for the start and end points on the map *)
 let string_of_markers start_pos end_pos = 
   let start_loc = (
     match LocationDict.lookup location_pts start_pos with
@@ -234,7 +254,7 @@ let string_of_markers start_pos end_pos =
   ("&markers=size:mid%7Clabel:S%7C"  ^ start_loc ^ "&markers=size:mid%7Clabel:E%7C" ^ end_loc)
 ;;
 
-(* I changed these to markers *)
+(* Markers for the intermediate locations on the map *)
 let string_of_interms ls = 
   let rec interms_string interms = 
     match interms with
@@ -242,7 +262,7 @@ let string_of_interms ls =
     | hd::tl -> (match LocationDict.lookup location_pts hd with
                  | None -> raise (Failure "Location not present")
                  | Some x -> "%7C" ^ x ^ (interms_string tl))
-  in "&markers=size:mid%7Clabel:I%7C" ^ (interms_string ls)
+  in "&markers=size:mid%7Ccolor:green%7Clabel:.%7C" ^ (interms_string ls)
 ;;
 
 (* Here we can trace out the path itself *) 
@@ -255,7 +275,8 @@ let string_of_path node_list =
                  | Some x -> "%7C" ^ x ^ (node_string tl))
   in "path=weight:3%7Ccolor:red" ^ (node_string node_list)
 ;;
- 
+
+(* Processes the query, returns the output to be displayed *)
 let do_query query_string =
   let query = parse_query query_string in
   let (start_pos, end_pos, interm) = extract_params query in
@@ -282,24 +303,17 @@ let send_all fd buf =
   let _ = more 0 size in size
 ;;
 
-(* process a request -- we're expecting a GET followed by a url or a query
- * "?begin=word+word".  If we find a query, then we feed it to the query parser to
- * get query abstract syntax.  Then we evaluate the query, using the index we
- * built earlier, to get a set of links.  Then we put the result in an html
+(* process a request -- If we find a query, then we feed it to the query parser to
+ * get query abstract syntax.  Then we evaluate the query, and we put the result in an html
  * document to send back to the client.
  *
  *)
 let process_request client_fd request =
-  (*  let _ = Printf.printf "Request: %s\n----\n" requestin
-      let _ = flush_all() in *)
     try
       let _ = Str.search_forward http_get_re request 0 in
       let query_string = Str.matched_group 1 request in
-      
-      (*let _ = Printf.printf "Query string: '%s'\n\n" query_string in
-      let _ = flush_all() in *)
+
       let response =
-           (*Printf.printf "seaching!" ;  *)
            do_query query_string
       in
       send_all client_fd response
@@ -339,7 +353,6 @@ let server () =
 let main () =
   (* Want different random numbers every time. *)
   let _ = Random.self_init () in
-    (* Construct the index to pass to the server *)
   let _ = flush_all () in
     server () 
   ;; 
