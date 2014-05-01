@@ -9,13 +9,13 @@ open Order
 
 
 (* Insert nodes into a set *)
-let build_set (lst: NamedGraph.node list) : DestinationSet.set = 
+let build_set (lst: DataGraph.node list) : DestinationSet.set = 
   List.fold_right lst ~f:(fun x y -> DestinationSet.insert x y)
       ~init:DestinationSet.empty 
     ;;
 
 (* Extract the start, end, and intermediate locations *)
-let extract_params (lst: string list) : NamedGraph.node * NamedGraph.node * DestinationSet.set =
+let extract_params (lst: string list) : DataGraph.node * DataGraph.node * DestinationSet.set =
   match lst with
   | [] |_ :: [] -> failwith "not enough params"
   | hd_1 :: hd_2 :: lst' -> (hd_1, hd_2, build_set lst')
@@ -23,9 +23,9 @@ let extract_params (lst: string list) : NamedGraph.node * NamedGraph.node * Dest
 
 
 (* The modified dijkstra function *)
-let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.node) 
+let dijkstra (graph: DataGraph.graph) (s: DataGraph.node) (fin: DataGraph.node) 
        (interm: DestinationSet.set) 
-    : (float * NamedGraph.node list)=
+    : (float * DataGraph.node list)=
   let rec extract_path prev_dict node path = 
     match PrevDict.lookup prev_dict node with
                   | None -> path
@@ -40,7 +40,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
     (* take the node with the minimum distance from the heap *)
       let ((v_node,_,v_dict), heap') = NodeHeapQueue.take heap in
       (* traverse all edges coming from v_node *)
-      match NamedGraph.neighbors graph v_node with
+      match DataGraph.neighbors graph v_node with
       | None -> failwith "Neighborless node, impossible in our graph"
       | Some lst ->
    let (newheap, newdist, newprev) = 
