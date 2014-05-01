@@ -9,10 +9,6 @@ sig
   val compare : t -> t -> order
   val to_string : t -> string
 
-  (* See the testing.ml for an explanation of
-   * what these "generate*" functions do, and why we included them in
-   * this signature. *)
-
   (* Generate a value of type t *)
   val generate: unit -> t
 
@@ -22,13 +18,9 @@ sig
   (* Generate a value of type t that is less than the argument. *)
   val generate_lt: t -> unit -> t
 
-  (* Generate a value of type t that is between argument 1 and argument 2.
-   * Returns None if there is no value between argument 1 and argument 2. *)
-  (* val generate_between: t -> t -> unit -> t option *)
 end
 
-(* An example implementation of the COMPARABLE signature. In this
- * example, the value of the integer also gives its priority. *)
+
 module PtCompare : COMPARABLE with type t=string * float * BoolDict.dict =
 struct
   type t = string * float * BoolDict.dict
@@ -52,11 +44,6 @@ struct
     let (n, d, dict) = x in
     (n, d -. 1., dict)
 
-  (* let generate_between x y () =
-    let (n1, d1) = x in
-    let (n2, d2) = y in
-    let (lower, higher) = (min d1 d2, max d1 d2) in
-    if higher - lower < 2 then None else Some (higher - 1) *)
 end
 
 (* A signature for a priority queue. The MINIMUM
