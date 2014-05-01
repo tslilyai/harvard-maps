@@ -20,7 +20,7 @@ sig
 
 end
 
-
+(* Compares two nodes/points in our graph that we insert. Sorts by distance *)
 module PtCompare : COMPARABLE with type t=string * float * BoolDict.dict =
 struct
   type t = string * float * BoolDict.dict
@@ -47,9 +47,7 @@ struct
 end
 
 (* A signature for a priority queue. The MINIMUM
- * valued element corresponds to the HIGHEST priority. For example,
- * in just an int prioqueue, the integer 4 has lower priority than
- * the integer 2.
+ * valued element corresponds to the HIGHEST priority.
  *)
 module type PRIOQUEUE =
 sig
@@ -224,9 +222,6 @@ struct
 	| Empty -> (last, Tree (Leaf e))
 	| Tree t1' -> (last, Tree (TwoBranch(Even, e, t1', t2))))
 	 
-  (* Implements the algorithm described in the writeup. You must finish this
-   * implementation, as well as the implementations of get_last and fix, which
-   * take uses *)
   let take (q : queue) : elt * queue =
     match extract_tree q with
     (* If the tree is just a Leaf, then return the value of that leaf, and the

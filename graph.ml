@@ -25,8 +25,9 @@ sig
 
   val add_node : graph -> node -> graph
 
-  (* Adds the nodes if they aren't already present. adds both the forward
-   * and back edge. *)
+  (* Adds the nodes if they aren't already present. Adds both the forward
+     and back edge. 
+  *)
   val add_edge : graph -> node -> node -> float  -> graph
 
   (* Return None if node isn't in the graph *)
@@ -46,11 +47,12 @@ struct
   module N = NA
   type node = N.node
 
-  (* We'll represent a graph as an edge dictionary:
+  (* A graph represetned as an edge dictionary:
      dictionary: node -> neighbor set of tuples of (node, weight)
      Every node in the graph must be a key in the dictionary.
   *)
 
+ (* Set containing all neighbors and their edge weights *)
   module NeighborSet = Myset.Make(
      struct
         type t = (node * float)
@@ -61,6 +63,7 @@ struct
         let gen_gt (_, _) () = (N.gen (), 3.)
       end)
 
+ (* Dictionary mapping a node to its neighbors *)
   module EdgeDict = Dict.Make(
     struct
       type key = node
@@ -137,7 +140,6 @@ struct
       | None -> None
       | Some s -> Some (NeighborSet.fold (fun (dst, weight) r ->
                                              (src, dst, weight) :: r) [] s)
-
   let has_node g n =
     match EdgeDict.lookup g.edges n with
       | None -> false
@@ -148,7 +150,8 @@ struct
     "Graph: " ^ (EdgeDict.string_of_dict g.edges)
 end
 
-module NamedGraph =
+(* Graph that holds all the data *)
+module DataGraph =
 struct
   include(Graph(struct
                   type node = string
@@ -163,7 +166,7 @@ end
 (* Tests *)
 module TestGraph =
 struct
-  module G = NamedGraph
+  module G = DataGraph
 
   let g = G.add_edge G.empty "a" "b" 3.;;
   let g2 = G.add_edge g "a" "c" 3.;;

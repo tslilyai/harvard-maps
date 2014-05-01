@@ -14,8 +14,7 @@ sig
   val empty : dict
 
   (* Reduce the dictionary using the provided function f and base case u.
-   * Our reducing function f must have the type:
-   *      key -> value -> 'a -> 'a
+   * Has the type: key -> value -> 'a -> 'a
    * and our base case u has type 'a.
    *
    * If our dictionary is the (key,value) pairs (in any order)
@@ -44,12 +43,12 @@ sig
    * pair removed. Return None if the input dict is empty *)
   val choose : dict -> (key * value * dict) option
 
-  (* functions to convert our types to strings for debugging and logging *)
+  (* Functions to convert our types to strings for debugging and logging *)
   val string_of_key: key -> string
   val string_of_value : value -> string
   val string_of_dict : dict -> string
 
-  (* Runs all the tests. see TESTING EXPLANATION below *)
+  (* Runs all the tests. *)
   val run_tests : unit -> unit
 end
 
@@ -211,6 +210,7 @@ struct
   let string_of_value = D.string_of_value
   let string_of_dict (d: dict) : string =
     fold (fun _ v rest -> (string_of_value v) ^ rest) "" d
+
   (* Upward phase for w where its parent is a Two node whose (key,value) is x.
    * One of x's children is w, and the other child is x_other. This function
    * should return a kicked-up configuration containing the new tree as a
@@ -434,7 +434,6 @@ struct
             Absorbed(rem,Three(left,(k1,v1),t,(k2,v2),right))
         )
 
-  (* DO NOT EDIT THIS *)
   and remove_min (d: dict) : hole =
     match d with
       | Leaf -> Hole(None,Leaf)
@@ -451,15 +450,13 @@ struct
           | Absorbed(rem,t) -> Absorbed(rem,Three(t,n1,middle,n2,right))
         )
 
-
   let remove (d: dict) (k: key) : dict =
     match remove_downward d k with
       | Hole(_,d') -> d'
       | Absorbed(_,d') -> d'
 
-
-   (* Write a lookup function that returns the value of the given key
-   * in our dictionary and returns it as an option, or return None
+   (* Returns the value of the given keyin our dictionary 
+   * and returns it as an option, or return None
    * if the key is not in our dictionary. *)
   let rec lookup (d: dict) (k: key) : value option =
     match d with
@@ -477,12 +474,11 @@ struct
           | _, Greater -> lookup right k
           | Greater, Less -> lookup middle k)
 
-  (* Write a function to test if a given key is in our dictionary *)
+  (* Test if a given key is in our dictionary *)
   let member (d: dict) (k: key) : bool =
     lookup d k <> None
 
-   (* Write a function that removes any (key,value) pair from our
-   * dictionary (your choice on which one to remove), and returns
+   (* Removes any (key,value) pair from our dictionary and returns
    * as an option this (key,value) pair along with the new dictionary.
    * If our dictionary is empty, this should return None. *)
   let choose (d: dict) : (key * value * dict) option =
@@ -491,9 +487,7 @@ struct
       | Two(_,(k,v),_) -> Some (k,v,remove d k)
       | Three(_,(k,v),_,_,_) -> Some (k,v,remove d k)
 
-   (* Write a function that when given a 2-3 tree (represented by our
-   * dictionary d), returns true if and only if the tree is "balanced"*)
-
+   (* Returns true if and only if the tree is "balanced"*)
  let balanced (d: dict) : bool =
     let rec bounds (d: dict) : (int * int) =
       match d with
@@ -514,8 +508,6 @@ struct
 
   (********************************************************************)
   (*       TESTS                                                      *)
-  (* You must write more comprehensive tests, using our remove tests  *)
-  (* below as an example                                              *)
   (********************************************************************)
 
   (* adds a list of (key,value) pairs in left-to-right order *)
@@ -732,8 +724,6 @@ end
 module IntStringBTDict = BTDict(IntStringDictArg) ;;
 IntStringBTDict.run_tests();;
 
-
-
 (******************************************************************)
 (* Make: a functor that creates a DICT *)
 (******************************************************************)
@@ -741,8 +731,9 @@ module Make (D:DICT_ARG) : (DICT with type key = D.key
   with type value = D.value) =
   BTDict(D)
 
-(* make all the modules *)
+(* Make all the modules used in Dijkstra's *)
 
+(* Dictionary that maps a node to a boolean. Used to store the "visited" state-space *)
 module BoolDict = Make(
   struct
     type key = string
@@ -757,6 +748,7 @@ module BoolDict = Make(
     let gen_pair () = (gen_key_random (), gen_value ())
   end)
 
+(* Dictionary that maps a node to the shortest distance to that node from start node *)
 module DistDict = Make(
   struct
     type key = string * BoolDict.dict
@@ -767,8 +759,8 @@ module DistDict = Make(
         let dx_string = BoolDict.string_of_dict dx in
         let dy_string = BoolDict.string_of_dict dy in
         if String.length(dx_string) = String.length(dy_string) then
-            let is_equal = BoolDict.fold (fun key _ y -> ((BoolDict.lookup dx key) = (BoolDict.lookup dy key)) && y) true dx in
-            if is_equal then Equal
+            if (BoolDict.fold (fun key _ y -> ((BoolDict.lookup dx key) = (BoolDict.lookup dy key)) && y) true dx) then
+              Equal
             else string_compare dx_string dy_string
         else string_compare dx_string dy_string
       else i         
@@ -781,6 +773,7 @@ module DistDict = Make(
     let gen_pair () = (gen_key_random (), gen_value ())
   end)
 
+(* Dictionary that maps a node to the previous node in that specific path *)
 module PrevDict = Make(
   struct
     type key = (string * BoolDict.dict)
@@ -805,6 +798,7 @@ module PrevDict = Make(
     let gen_pair () = (gen_key_random (), gen_value ())    
   end)
 
+(* Dictionary that maps a location's name to its coordinates *)
 module LocationDict = Make(
   struct
     type key = string
