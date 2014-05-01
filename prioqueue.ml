@@ -101,22 +101,16 @@ struct
 
   type elt = C.t
 
-  (* Be sure to read the pset spec for hints and clarifications.
-   *
-   * Remember the invariants of the tree that make up your queue:
+  (* INVARIANTS:
    * 1) A tree is ODD if its left subtree has 1 more node than its right
    * subtree. It is EVEN if its left and right subtrees have the same number of
    * nodes. The tree can never be in any other state. This is the WEAK
    * invariant, and should never be false.
    *
    * 2) All nodes in the subtrees of a node should be *greater* than (or equal
-   * to) the value of that node. This, combined with the previous invariant,
-   * makes a STRONG invariant. Any tree that a user passes in to your module
-   * and receives back from it should satisfy this invariant.  However, in the
-   * process of, say, adding a node to the tree, the tree may intermittently
-   * not satisfy the order invariant. If so, you *must* fix the tree before
-   * returning it to the user.  Fill in the rest of the module below!
+   * to) the value of that node. 
    *)
+   
   (* A node in the tree is either even or odd *)
   type balance = Even | Odd
 
@@ -133,23 +127,6 @@ struct
   let empty = Empty
 
   let is_empty (q : queue) = q = Empty
-
-  (* calculates size of a tree)
-  let rec size (t : tree) : int = 
-    match t with
-    | Leaf _ -> 1
-    | OneBranch (_,_) -> 2
-    | TwoBranch (_,_,t1,t2) -> 1 + (size t1) + (size t2)
-
-  (* ensures tree satisfies the weak invariant *)
-  let satisfies (t : tree) : bool = 
-    match t with
-    | TwoBranch (b, _, t1, t2) ->
-       (match b with
-	| Even -> size t1 = size t2
-	| Odd -> size t1 = size t2 + 1)
-    | _ -> true
-   *)
 
   (* Adds element e to the queue q *)
   let add (e : elt) (q : queue) : queue =
@@ -239,16 +216,10 @@ struct
 
   (* Takes a tree, and returns the item that was most recently inserted into
    * that tree, as well as the queue that results from removing that element.
-   * Notice that a queue is returned (since removing an element from just a leaf
-   * would result in an empty case, which is captured by the queue type
    *
    * By "item most recently inserted", we don't mean the
    * most recently inserted *value*, but rather the newest node that was
-   * added to the bottom-level of the tree. If you follow the implementation
-   * of add carefully, you'll see that the newest value may end up somewhere
-   * in the middle of the tree, but there is always *some* value brought
-   * down into a new node at the bottom of the tree. *This* is the node
-   * that we want you to return.
+   * added to the bottom-level of the tree. 
    *)
 
   let rec get_last (t : tree) : elt * queue = 

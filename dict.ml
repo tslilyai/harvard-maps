@@ -63,10 +63,63 @@ sig
   val compare : key -> key -> Ordering.t
   val string_of_key : key -> string
   val string_of_value : value -> string
+  
+  (* Testing functions *)
+
+  (* Generate a key. The same key is always returned *)
+  val gen_key : unit -> key
+
+  (* Generate a random key. *)
+  val gen_key_random : unit -> key
+
+  (* Generates a key greater than the argument. *)
+  val gen_key_gt : key -> unit -> key
+
+  (* Generates a random value. *)
+  val gen_value : unit -> value
+
+  (* Generates a random (key,value) pair *)
+  val gen_pair : unit -> key * value
 end
 
 
+(* An example implementation of our DICT_ARG signature. We use this struct
+ * for testing. *)
+module IntStringDictArg : DICT_ARG =
+struct
+  open Order
+  type key = int
+  type value = string
+  let compare x y = if x < y then Less else if x > y then Greater else Equal
+  let string_of_key = string_of_int
+  let string_of_value v = v
+  let gen_key () = 0
+  let gen_key_gt x () = x + 1
+  let gen_key_random =
+    let _ = Random.self_init () in
+    (fun () -> Random.int 10000)
 
+  (* returns the nth string in lst, or "cow" n > length of list *)
+  let rec lst_n (lst: string list) (n: int) : string =
+    match lst with
+      | [] -> "cow"
+      | hd::tl -> if n = 0 then hd else lst_n tl (n-1)
+
+  (* list of possible values to generate *)
+  let possible_values = ["a";"c";"d";"e";"f";"g";"h";"i";"j";"k";"m";"n";
+                         "o";"p";"q";"r";"s";"t";"u";"v";"w";"x";"y";"z";
+                         "zzzzzz";"cheese";"foo";"bar";"baz";"quux";"42"]
+  let num_values = List.length possible_values
+  (* gen_value will return the string at this current index *)
+  let current_index = ref 0
+  let gen_value () =
+    let index = !current_index in
+    if index >= num_values then
+      (current_index := 0; lst_n possible_values index)
+    else
+      (current_index := index + 1; lst_n possible_values index)
+  let gen_pair () = (gen_key_random(), gen_value())
+end
 
 
 (******************************************************************)
@@ -89,9 +142,6 @@ struct
   type pair = key * value
 
   (* Type definition for dictionary, which we choose to represent as a 2-3 Tree.
-   * This is almost the same as the binary search tree definition from pset4 and
-   * lecture, except we add one more case: a Three-node.
-   *
    * A Three-node contains two pairs and three subtrees: left, middle, and
    * right, represented by the 3 dicts in the definition below. *)
   type dict =
@@ -143,12 +193,8 @@ struct
     | Mid3
     | Right3
 
-  (* TODO:
-   * How do we represent an empty dictionary with 2-3 trees? *)
   let empty : dict = Leaf
 
-  (* TODO:
-   * Implement fold. Read the specification in the DICT signature above. *)
   let rec fold (f: key -> value -> 'a -> 'a) (u: 'a) (d: dict) : 'a =
     match d with
       | Leaf -> u
@@ -161,42 +207,12 @@ struct
                 (fold f
                    (fold f u left) middle) right))
 
-  (* TODO:
-   * Implement these to-string functions *)
   let string_of_key = D.string_of_key
   let string_of_value = D.string_of_value
   let string_of_dict (d: dict) : string =
     fold (fun k v rest ->
       (string_of_key k) ^ " -> " ^ (string_of_value v) ^ "\n" ^ rest)
       "" d
-
-  (* Debugging function. This will print out the tree in text format.
-   * Use this function to see the actual structure of your 2-3 tree. *
-   *
-   * e.g.      (4,d)   (6,f)
-   *         /       |       \
-   *      (2,b)    (4,d)     Leaf
-   *      /  \     /   \
-   *   Leaf  Leaf Leaf  Leaf
-   *
-   * string_of_tree will output:
-   * Three(Two(Leaf,(2,b),Leaf),(4,d),Two(Leaf,(5,e),Leaf),(6,f),Leaf)
-   *
-   * Note that this tree is NOT balanced, because all the paths from (6,f)
-   * to its leaves do NOT all have the same length. *)
-  (*
-  let rec string_of_tree (d: dict) : string =
-    match d with
-      | Leaf -> "Leaf"
-      | Two(left,(k,v),right) -> "Two(" ^ (string_of_tree left)
-        ^ ",(" ^ (string_of_key k) ^ "," ^ (string_of_value v) ^ "),"
-        ^ (string_of_tree right) ^ ")"
-      | Three(left,(k1,v1),middle,(k2,v2),right) ->
-        "Three(" ^ (string_of_tree left)
-        ^ ",(" ^ (string_of_key k1) ^ "," ^ (string_of_value v1) ^ "),"
-        ^ (string_of_tree middle) ^ ",(" ^ (string_of_key k2) ^ ","
-        ^ (string_of_value v2) ^ ")," ^ (string_of_tree right) ^ ")"
-   *)
   (* Upward phase for w where its parent is a Two node whose (key,value) is x.
    * One of x's children is w, and the other child is x_other. This function
    * should return a kicked-up configuration containing the new tree as a
@@ -210,18 +226,7 @@ struct
       | Less -> Done(Three(w_left,w,w_right,x,x_other))
       | Greater -> Done(Three(x_other,x,w_left,w,w_right))
 
-  (* Upward phase for w where its parent is a Three node whose (key,value) is x.
-   * One of x's children is w, and of the two remaining children,
-   * other_left is the subtree more to the left and other_right is the
-   * subtree more to the right.
-   *
-   * E.g. From our handout, for the first case where w's parent is a Three-tree,
-   * other_left would be c and other_right would be d. For the second case,
-   * other_left would be a and other_right would be d. For the third case,
-   * other_left would be a and other_right would be b.
-   *
-   * This function should return a kicked-up configuration containing the
-   * new tree as a result of performing the upward phase on w. *)
+  (* Upward phase for w where its parent is a Three node whose (key,value) is x. *)
   let insert_upward_three (w: pair) (w_left: dict) (w_right: dict)
       (x: pair) (y: pair) (other_left: dict) (other_right: dict) : kicked =
     let (w_key,_) = w in
@@ -243,33 +248,7 @@ struct
         let right = Two(w_right,y,other_right) in
         Up(left,w,right)
 
-  (* Downward phase for inserting (k,v) into our dictionary d.
-   * The downward phase returns a "kicked" up configuration, where
-   *
-   * type kicked =
-   *      | Up of dict * pair * dict
-   *      | Done of dict
-   *
-   * A kicked up configuration can only be a Two node, hence the Up
-   * constructor takes the same parameters as the Two constructor. We return
-   * Up(left,(k,v),right) if the Two-node represented by this Up needs to
-   * be further kicked up in the upward phase (this is represented by an up
-   * arrow on the 2-3 Tree handout). We return Done(d) if we have finished
-   * our upward phase on the tree represented by d.
-   *
-   * The functions insert_downward, insert_downward_two, and
-   * insert_downward_three are __mutually recursive__, hence the
-   * "let rec" and the "and" keywords. Here, we use three mutually recursive
-   * functions to simplify our code into smaller pieces.
-   *
-   * Two functions f and g are __mutually recursive__ if in f's definition,
-   * f calls g, and in g's definition, g calls f. This definition of
-   * mutually recursive definitions can be extended to more than two functions,
-   * as follows:
-   *
-   * Functions f1, f2, f3, ..., fn are mutually recursive if for each of
-   * these functions f, all of the other f_i's can be called on some execution
-   * of f. *)
+  (* Downward phase for inserting (k,v) into our dictionary d.*)
 
   (* insert_downward should handle the base case when inserting into a Leaf,
    * and if our dictionary d is a Two-node or a Three-node, we call the
@@ -375,7 +354,6 @@ struct
       | Left3,_,_,_,_,_ | Mid3,_,_,_,_,_ | Right3,_,_,_,_,_ ->
         Absorbed(rem,Three(Leaf,n1,Leaf,n2,Leaf))
 
-  (* DO NOT EDIT THIS *)
   let rec remove_downward (d: dict) (k: key) : hole =
     match d with
       | Leaf -> Absorbed(None,d)
@@ -393,7 +371,6 @@ struct
       | Two(l,n,r) -> remove_downward_two k n l r
       | Three(l,n1,m,n2,r) -> remove_downward_three k n1 n2 l m r
 
-  (* DO NOT EDIT THIS *)
   and remove_downward_two (k: key) ((k1,v1): pair)
       (left: dict) (right: dict) : hole =
     match D.compare k k1 with
@@ -416,7 +393,6 @@ struct
           | Absorbed(rem,t) -> Absorbed(rem,Two(left,(k1,v1),t))
         )
 
-  (* DO NOT EDIT THIS *)
   and remove_downward_three (k: key) ((k1,v1): pair) ((k2,v2): pair)
       (left: dict) (middle: dict) (right: dict) : hole =
     match D.compare k k1, D.compare k k2 with
@@ -477,14 +453,14 @@ struct
           | Absorbed(rem,t) -> Absorbed(rem,Three(t,n1,middle,n2,right))
         )
 
-  (* DO NOT EDIT THIS *)
+
   let remove (d: dict) (k: key) : dict =
     match remove_downward d k with
       | Hole(_,d') -> d'
       | Absorbed(_,d') -> d'
 
-  (* TODO:
-   * Write a lookup function that returns the value of the given key
+
+   (* Write a lookup function that returns the value of the given key
    * in our dictionary and returns it as an option, or return None
    * if the key is not in our dictionary. *)
   let rec lookup (d: dict) (k: key) : value option =
@@ -503,13 +479,11 @@ struct
           | _, Greater -> lookup right k
           | Greater, Less -> lookup middle k)
 
-  (* TODO:
-   * Write a function to test if a given key is in our dictionary *)
+  (* Write a function to test if a given key is in our dictionary *)
   let member (d: dict) (k: key) : bool =
     lookup d k <> None
 
-  (* TODO:
-   * Write a function that removes any (key,value) pair from our
+   (* Write a function that removes any (key,value) pair from our
    * dictionary (your choice on which one to remove), and returns
    * as an option this (key,value) pair along with the new dictionary.
    * If our dictionary is empty, this should return None. *)
@@ -519,12 +493,9 @@ struct
       | Two(_,(k,v),_) -> Some (k,v,remove d k)
       | Three(_,(k,v),_,_,_) -> Some (k,v,remove d k)
 
-  (* TODO:
-   * Write a function that when given a 2-3 tree (represented by our
-   * dictionary d), returns true if and only if the tree is "balanced",
-   * where balanced means that the given tree satisfies the 2-3 tree
-   * invariants stated above and in the 2-3 tree handout. *)
-(* 
+   (* Write a function that when given a 2-3 tree (represented by our
+   * dictionary d), returns true if and only if the tree is "balanced"*)
+
  let balanced (d: dict) : bool =
     let rec bounds (d: dict) : (int * int) =
       match d with
@@ -541,8 +512,8 @@ struct
     in
     let (min_height,max_height) = bounds d in
     max_height - min_height = 0
- *)
-(*
+ 
+
   (********************************************************************)
   (*       TESTS                                                      *)
   (* You must write more comprehensive tests, using our remove tests  *)
@@ -667,14 +638,6 @@ struct
     assert(balanced d5) ;
     ()
 
-  let test_remove_nothing () =
-    let pairs1 = generate_pair_list 26 in
-    let d1 = insert_list empty pairs1 in
-    let r2 = remove d1 (D.gen_key_lt (D.gen_key()) ()) in
-    List.iter pairs1 ~f:(fun (k,v) -> assert(lookup r2 k = Some v)) ;
-    assert(balanced r2) ;
-    ()
-
   let test_remove_from_nothing () =
     let d1 = empty in
     let r1 = remove d1 (D.gen_key()) in
@@ -743,26 +706,33 @@ struct
     let d1 = insert_list_reversed empty pairs1 in
     let num_elements = fold (fun _ _ r -> r + 1) 0 d1 in
     assert(num_elements = 26)
- *)
-  let run_tests () = (*
+ 
+  let run_tests () = 
     test_balance() ;
     test_insert_in_order() ;
     test_insert_empty() ;
     test_insert_reversed_order () ;
     test_insert_update() ;
     test_insert_random_order() ;
-    test_remove_nothing() ;
     test_remove_from_nothing() ;
     test_remove_in_order() ;
     test_remove_reverse_order() ;
     test_remove_random_order() ;
     test_choose () ;
-    test_fold () ; *)
+    test_fold () ; 
     ()
 
 end
 
+(******************************************************************)
+(* Run our tests.                                                 *)
+(******************************************************************)
 
+(* Create a dictionary mapping ints to strings using our
+ * BTDict functor and run the tests *)
+
+module IntStringBTDict = BTDict(IntStringDictArg) ;;
+IntStringBTDict.run_tests();;
 
 
 
@@ -782,6 +752,11 @@ module BoolDict = Make(
     let compare = string_compare
     let string_of_key x = x
     let string_of_value = Bool.to_string
+    let gen_key () = "1"
+    let gen_key_random () = Int.to_string (Random.int 100)
+    let gen_key_gt x () = x ^ "a"
+    let gen_value () = Random.bool ()
+    let gen_pair () = (gen_key_random (), gen_value ())
   end)
 
 module DistDict = Make(
@@ -795,6 +770,11 @@ module DistDict = Make(
       else i         
     let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
     let string_of_value = Float.to_string
+    let gen_key () = ("1", BoolDict.empty)
+    let gen_key_random () = (Int.to_string (Random.int 100), BoolDict.empty)
+    let gen_key_gt (s, dict) () = (s ^ "a", dict)
+    let gen_value () = Random.float 100.
+    let gen_pair () = (gen_key_random (), gen_value ())
   end)
 
 module PrevDict = Make(
@@ -808,6 +788,11 @@ module PrevDict = Make(
       else i         
     let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
     let string_of_value (x,dict) = x ^ BoolDict.string_of_dict dict
+    let gen_key () = ("1", BoolDict.empty)
+    let gen_key_random () = (Int.to_string (Random.int 100), BoolDict.empty)
+    let gen_key_gt (s, dict) () = (s ^ "a", dict)
+    let gen_value () = gen_key_random ()
+    let gen_pair () = (gen_key_random (), gen_value ())    
   end)
 
 module LocationDict = Make(
@@ -817,4 +802,9 @@ module LocationDict = Make(
     let compare = string_compare
     let string_of_key x = x
     let string_of_value x = x
+    let gen_key () = "1"
+    let gen_key_random () = Int.to_string (Random.int 100)
+    let gen_key_gt x () = x ^ "a"
+    let gen_value () = Int.to_string (Random.int 100)
+    let gen_pair () = (gen_key_random (), gen_value ())  
   end)

@@ -56,6 +56,18 @@ sig
   type t
   val compare : t -> t -> Ordering.t
   val string_of_t : t -> string
+  
+  (* testing functions *)
+  
+  (* Generate a value of type t. The same t is always returned *)
+  val gen : unit -> t
+
+  (* Generate a random value of type t. *)
+  val gen_random : unit -> t
+
+  (* Generate a t greater than the argument. *)
+  val gen_gt : t -> unit -> t
+
 end
 
 
@@ -68,6 +80,11 @@ struct
   type t = int
   let compare x y = if x < y then Less else if x > y then Greater else Equal
   let string_of_t = string_of_int
+  let gen () = 0
+  let gen_random =
+    let _ = Random.self_init () in
+    (fun () -> Random.int 10000)
+  let gen_gt x () = x + 1
 end
 
 module StringComparable : COMPARABLE with type t = string = 
@@ -77,6 +94,9 @@ struct
   let compare x y = let i = String.compare x y in
     if i = 0 then Equal else if i > 0 then Greater else Less
   let string_of_t t = t
+  let gen () = "1"
+  let gen_random ()= Int.to_string (Random.int 100)
+  let gen_gt x () = x ^ "a"
 end
 
 
@@ -94,6 +114,11 @@ struct
        let compare = C.compare
        let string_of_key = C.string_of_t
        let string_of_value = C.string_of_t
+       let gen_key () = C.gen ()
+       let gen_key_gt _ () = gen_key ()
+       let gen_key_random () = gen_key ()
+       let gen_value () = gen_key ()
+       let gen_pair () = (gen_key(),gen_value())
      end)
 
   type elt = D.key
@@ -128,7 +153,7 @@ struct
   (* write tests. However, you must write a lot more              *)
   (* comprehensive tests to test ALL your functions.              *)
   (****************************************************************)
-(*
+
   let insert_set (d: set) (lst: elt list) : set =
     List.fold_left lst ~f:(fun r k -> insert k r) ~init:d
 
@@ -218,8 +243,8 @@ struct
     let s1 = singleton x in
     assert (s1 = insert x empty);
     ()
- *)
-  let run_tests () = () (*
+ 
+  let run_tests () =
     test_insert () ;
     test_remove () ;
     test_union () ;
@@ -229,9 +254,15 @@ struct
     test_fold () ;
     test_is_empty () ;
     test_singleton () ;
-    ()*)
+    ()
 end
 
+(******************************************************************)
+(* Run our tests.                                                 *)
+(******************************************************************)
+
+module IntDictSet = DictSet(IntComparable) ;;
+IntDictSet.run_tests();;
 
 (******************************************************************)
 (* Make: a functor that creates a SET by calling our              *)

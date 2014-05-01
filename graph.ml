@@ -56,6 +56,9 @@ struct
         type t = (node * float)
         let compare x y = let (n1, _), (n2, _) = x, y in N.compare n1 n2
         let string_of_t x = let (n, _) = x in N.string_of_node n
+        let gen ()= (N.gen (), 3.)
+        let gen_random () = (N.gen (), (Random.float 100.))
+        let gen_gt (node, value) () = (N.gen (), 3.)
       end)
 
   module EdgeDict = Dict.Make(
@@ -65,6 +68,11 @@ struct
       let compare = N.compare
       let string_of_key = N.string_of_node
       let string_of_value ns = NeighborSet.string_of_set ns
+      let gen_key = N.gen
+      let gen_key_random = N.gen
+      let gen_key_gt x () = N.gen ()
+      let gen_value () = NeighborSet.empty
+      let gen_pair () = (gen_key(),gen_value())
     end)
 
   module IntNode = Dict.Make(
@@ -74,6 +82,11 @@ struct
       let compare = int_compare
       let string_of_key = string_of_int
       let string_of_value = N.string_of_node
+      let gen_key () = 0
+      let gen_key_random () = 0
+      let gen_key_gt x () = 1
+      let gen_value = N.gen
+      let gen_pair () = (gen_key(),gen_value())
     end)
 
  type graph = { edges : EdgeDict.dict ;
@@ -145,4 +158,50 @@ struct
                 end))
   let from_edges (es: (string * string * float) list) : graph =
     List.fold_left es ~f:(fun g (src, dst, weight) -> add_edge g src dst weight) ~init:empty
+end
+
+(* Tests *)
+module TestGraph =
+struct
+  module G = NamedGraph
+
+  let g = G.add_edge G.empty "a" "b" 3.;;
+  let g2 = G.add_edge g "a" "c" 3.;;
+
+  let deopt_len lo =
+    match lo with
+      | None -> 0
+      | Some xs -> List.length xs;;
+
+  let deopt_lst lo =
+    match lo with
+      | None -> []
+      | Some xs -> xs;;
+
+  let deopt_node no =
+    match no with
+      | None -> "None"
+      | Some n -> n;;
+
+  let _ = (
+    assert (G.has_node g "a");
+    assert (G.has_node g "b");
+    assert (G.has_node g "c" = false);
+    assert (G.has_node g2 "c");
+    assert (G.has_node g2 "d" = false);
+
+    assert (List.length (G.nodes G.empty) = 0) ;
+    assert (List.length (G.nodes (G.add_node G.empty "a")) = 1) ;
+
+    assert (List.length (G.nodes g) = 2) ;
+
+    assert (List.length (G.nodes g2) = 3) ;
+
+    assert (deopt_len (G.outgoing_edges g2 "a") = 2) ;
+    assert (G.outgoing_edges g2 "d" = None) ;
+
+    assert (deopt_len (G.neighbors g2 "a") = 2) ;
+    assert (G.neighbors g2 "d" = None);
+)
+
 end
