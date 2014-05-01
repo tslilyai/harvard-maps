@@ -35,8 +35,8 @@ let data = NamedGraph.from_edges [
 ("JP_Licks", "Gnomon", 26.);
 ("Felix", "Gnomon", 16.);
 ("Felix", "Zinnia", 49.);
-("Zinnia", "Claverly", 528.);
-("Tennis", "Claverly", 151.);
+("Zinnia", "AdamsClaverly", 528.);
+("Tennis", "AdamsClaverly", 151.);
 ("Tennis", "Boloco", 20.);
 ("Boloco", "Spice", 138.);
 ("Spice", "Andover", 33.);
@@ -71,7 +71,35 @@ let data = NamedGraph.from_edges [
 ("Mower","Lionel",171.);
 ("Lionel","Hollis",144.);
 ("Mass_hall","Hollis",295.);
-("Yenching","Wigglesworth",240.)
+("Yenching","Wigglesworth",240.);
+("Pfoho","Cabot", 295.);
+("Cabot","Soch",400.);
+("Currier","Cabot",325.);
+("Currier","Pfoho",100.);
+("Soch","Mass_hall",3168.);
+("AdamsDhall","Lampoon",203.);
+("AdamsClaverly","Lampoon",117.);
+("Harvard_Bookstore","Crimson",177.);
+("Harvard_Bookstore","Wigglesworth",144.);
+("Crimson","AdamsDhall",92.);
+("Lampoon","Quincy",161.);
+("Quincy","Lev_McKinlock",476.);
+("LevMcKinlock","Lev_Towers",262.);
+("LevTowers","Dunster",312.);
+("Dunster","Mather",187.);
+("Lev_McKinlock","WinthropGore",322.);
+("Quincy","Lowell",184.);
+("WinthropGore","WinthropStandish",377.);
+("WinthropStandish","Eliot",187.);
+("Eliot","Kirkland",128.);
+("Kirkland","MAC",299.);
+("MAC","Lowell",217.);
+("MAC","UHS",374.);
+("UHS","Finale",210.);
+("Finale","Smith",226.);
+("Smith","T_Station",118.);
+("Smith","Yenching",141.);
+("Spice","UHS",95.);
 ]
 
 ;;
@@ -96,7 +124,6 @@ let location_pts = insert_locations [
 ("Tennis","42.37199,-71.118287");
 ("Sandrines","42.372731,-71.118048");
 ("Felix","42.372882,-71.117426");
-("Claverly","42.371915,-71.117734");
 ("Wigglesworth","42.37309,-71.117164");
 ("Lamont","42.372722,-71.115501");
 ("Widener","42.373284,-71.11652");
@@ -107,7 +134,7 @@ let location_pts = insert_locations [
 ("Sever","42.374374,-71.115522");
 ("Mem_church","42.374941,-71.115924");
 ("Thayer","42.37506,-71.116734");
-("Mass_Hall","42.374477,-71.118328");
+("Mass_hall","42.374477,-71.118328");
 ("Straus", "42.37418,-71.118607");
 ("Hollis","42.375004,-71.117845");
 ("Stoughton","42.375369,-71.117743");
@@ -116,7 +143,31 @@ let location_pts = insert_locations [
 ("Canaday","42.375341,-71.116037");
 ("University_hall","42.374497,-71.117078");
 ("Weld","42.373994,-71.117126");
-("Holworthy","42.375519,-71.117115")
+("Holworthy","42.375519,-71.117115");
+("Pfoho","42.382125,-71.124911");
+("Cabot","42.381499,-71.124245");
+("Currier","42.381769,-71.125629");
+("Soch","42.380889,-71.125147");
+("Crimson","42.372151,-71.116541");
+("AdamsDhall", "42.371925,-71.116649");
+("AdamsClaverly","42.371915,-71.117734");
+("Lampoon","42.371572,-71.117196");
+("Lowell","42.370986,-71.117807");
+("Quincy","42.370998,-71.117169");
+("Lev_McKinlock","42.370102,-71.117587");
+("Lev_Towers","42.369666,-71.116412");
+("Dunster","42.368774,-71.115919");
+("Mather","42.368659,-71.115205");
+("WinthropGore","42.370391,-71.118639");
+("WinthropStandish","42.370451,-71.119862");
+("Eliot","42.370407,-71.120956");
+("Kirkland","42.370831,-71.120452");
+("MAC","42.37139,-71.119465");
+("UHS","42.372171,-71.118666");
+("Finale","42.372492,-71.119079");
+("Smith","42.372979,-71.11844");
+("T_Station","42.37328,-71.118907");
+("Harvard_Bookstore","42.372539,-71.116353")
 ]
 ;;
 
@@ -164,6 +215,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
         let d' = DistDict.insert d (w_node, w_dict) distw' in
         let p' = PrevDict.insert p (w_node, w_dict) 
                (v_node, v_dict) in
+        let _ = print_string (w_node ^ "," ^ (BoolDict.string_of_dict w_dict)) in
         (h', d', p')
      | Some distw, Some distv -> 
         let distw' = distv +. w_length in
@@ -172,6 +224,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
           let d' = DistDict.insert d (w_node, w_dict) distw' in
           let p' = PrevDict.insert p (w_node, w_dict) 
                  (v_node, v_dict) in
+          let _ = print_string (w_node ^ "," ^ (BoolDict.string_of_dict w_dict)) in
           (h', d', p')
         else (h,d,p)
      | _, None -> failwith("There should always be a distv"))
@@ -196,6 +249,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
        (fun node dict -> BoolDict.insert dict node true) 
        BoolDict.empty interm in
   (* get the shortest distance of our path *)
+  let _ = print_string (DistDict.string_of_dict final_dist) in
   let distance = match DistDict.lookup final_dist (fin, final_booldict) with
                 | None -> failwith ("Unreachable destination")
                 | Some d -> d
@@ -205,7 +259,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 ;;
 
 (* Tests for our modified dijkstra's - yay corner cases! *)
-assert(dijkstra cs124graph "s" "a" DestinationSet.empty = (2.,["s";"a"]));;
+(*assert(dijkstra cs124graph "s" "a" DestinationSet.empty = (2.,["s";"a"]));;
 assert(dijkstra cs124graph "s" "s" DestinationSet.empty = (0.,["s"]));;
 assert(dijkstra cs124graph "s" "f" DestinationSet.empty = (5.,["s";"a";"c";"f"]));;
 assert(dijkstra cs124graph "s" "s" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (15., ["s";"a";"c";"b";"d";"f";"e";"f";"c";"a";"s"]));; 
@@ -216,16 +270,16 @@ assert(dijkstra cs124graph "s" "e" (build_set ["e"]) = (6., ["s";"a";"c";"f";"e"
 assert(dijkstra cs124graph "s" "s" (build_set ["s"]) = (0., ["s"]));;
 assert(dijkstra cs124graph "s" "e" (build_set ["b"]) = (8., ["s";"a";"c";"b";"c";"f";"e"]));;
 assert(dijkstra cs124graph "s" "e" (build_set ["b";"c"]) = (8., ["s";"a";"c";"b";"c";"f";"e"]));;
-
+*)
 (* Print function for testing *)
-(*
+
  let rec print_list = function [] -> ()
    | e::l -> print_string e ; print_string " " ; print_list l;;
 
-let (x, ls) = (dijkstra cs124graph "s" "e" 
-				    (build_set ["e"])) in
+let (x, ls) = (dijkstra data "Yenching" "Yenching" 
+				    (build_set ["Eliot";"Kirkland";"WinthropGore";"WinthropStandish"])) in
     print_list (ls); print_float x;; 
-*)
+
 
 (* Get the server port number, usally 8080 *)
 let server_port =

@@ -208,3 +208,87 @@ struct
 )
 
 end
+
+
+(* Graph for testing from Jelani's lecture notes *)
+let cs124graph = NamedGraph.from_edges 
+       [("s","a", 2.); ("a","c",1.);("c","e",4.);("s","b",6.);
+        ("b","d",2.);("d","f",2.);("f","e",1.);("c","f",2.);
+        ("c","b",1.);("b","a",5.)];;
+
+(* Create our graph *)
+let data = NamedGraph.from_edges [
+("Yenching", "J_August", 49.);
+("J_August", "Leavitt", 36.);
+("Leavitt", "JP_Licks", 3.);
+("JP_Licks", "Gnomon", 26.);
+("Felix", "Gnomon", 16.);
+("Felix", "Zinnia", 49.);
+("Zinnia", "AdamsClaverly", 528.);
+("Tennis", "AdamsClaverly", 151.);
+("Tennis", "Boloco", 20.);
+("Boloco", "Spice", 138.);
+("Spice", "Andover", 33.);
+("Andover", "Ginos", 20.);
+("Ginos", "Sandrines", 164.);
+("Yenching", "Sandrines", 177.);
+("University_hall","Weld", 184.);
+("Weld","Grays", 112.);
+("Grays","Boylston", 121.);
+("Boylston","Wigglesworth",200.);
+("Wigglesworth","Lamont",479.);
+("Lamont","Widener",456.);
+("Wigglesworth","Widener",420.);
+("Widener","Emerson",230.);
+("Emerson","Sever",217.);
+("Widener","Sever",249.);
+("Weld","Widener", 384.);
+("Widener","Mem_church",400.);
+("Grays","Matthews", 190.);
+("Grays","Mass_hall", 240.);
+("Grays","University_hall",285.);
+("Mass_hall","University_hall", 325.);
+("Grays","Straus", 92.);
+("Straus","Mass_hall", 246.);
+("Lamont","Emerson",482.);
+("Mem_church","Canaday", 226.);
+("Thayer","Holworthy",161.);
+("Thayer","Canaday",180.);
+("Holworthy","Stoughton",157.);
+("Stoughton","Hollis",112.);
+("Stoughton","Mower",144.);
+("Mower","Lionel",171.);
+("Lionel","Hollis",144.);
+("Mass_hall","Hollis",295.);
+("Yenching","Wigglesworth",240.);
+("Pfoho","Cabot", 295.);
+("Cabot","Soch",400.);
+("Currier","Cabot",325.);
+("Currier","Pfoho",100.);
+("Soch","Mass_hall",3168.);
+("AdamsDhall","Lampoon",203.);
+("AdamsClaverly","Lampoon",117.);
+("Harvard_Bookstore","Crimson",177.);
+("Harvard_Bookstore","Wigglesworth",144.);
+("Crimson","AdamsDhall",92.);
+("Lampoon","Quincy",161.);
+("Quincy","Lev_McKinlock",476.);
+("LevMcKinlock","Lev_Towers",262.);
+("LevTowers","Dunster",312.);
+("Dunster","Mather",187.);
+("Lev_McKinlock","WinthropGore",322.);
+("Quincy","Lowell",184.);
+("WinthropGore","WinthropStandish",377.);
+("WinthropStandish","Eliot",187.);
+("Eliot","Kirkland",128.);
+("Kirkland","MAC",299.);
+("MAC","Lowell",217.);
+("MAC","UHS",374.);
+("UHS","Finale",210.);
+("Finale","Smith",226.);
+("Smith","T_Station",118.);
+("Smith","Yenching",141.);
+("Spice","UHS",95.);
+]
+
+;;

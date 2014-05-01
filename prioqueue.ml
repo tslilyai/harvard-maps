@@ -298,3 +298,8 @@ struct
     test_get_top();
     ()
 end
+
+(* Initialize our min-priority queue *)
+module NodeHeapQueue = (BinaryHeap(PtCompare) :
+                        PRIOQUEUE with type elt = PtCompare.t)
+;;
