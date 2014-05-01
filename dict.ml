@@ -211,7 +211,7 @@ struct
   let string_of_value = D.string_of_value
   let string_of_dict (d: dict) : string =
     fold (fun k v rest ->
-      (string_of_key k) ^ " -> " ^ (string_of_value v) ^ "\n" ^ rest)
+      (*(string_of_key k) *)(*^ " -> "*) (*^*) (string_of_value v) (*^ "\n"*) ^ rest)
       "" d
   (* Upward phase for w where its parent is a Two node whose (key,value) is x.
    * One of x's children is w, and the other child is x_other. This function
@@ -766,7 +766,13 @@ module DistDict = Make(
     let compare (x,dx) (y,dy) =
       let i = string_compare x y in 
       if i = Equal then
-  string_compare (BoolDict.string_of_dict dx) (BoolDict.string_of_dict dy)
+        let dx_string = BoolDict.string_of_dict dx in
+        let dy_string = BoolDict.string_of_dict dy in
+        if String.length(dx_string) = String.length(dy_string) then
+            let is_equal = BoolDict.fold (fun key value y -> ((BoolDict.lookup dx key) = (BoolDict.lookup dy key)) && y) true dx in
+            if is_equal then Equal
+            else string_compare dx_string dy_string
+        else string_compare dx_string dy_string
       else i         
     let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
     let string_of_value = Float.to_string
@@ -784,7 +790,13 @@ module PrevDict = Make(
     let compare (x,dx) (y,dy) =
       let i = string_compare x y in 
       if i = Equal then
-  string_compare (BoolDict.string_of_dict dx) (BoolDict.string_of_dict dy)
+        let dx_string = BoolDict.string_of_dict dx in
+        let dy_string = BoolDict.string_of_dict dy in
+        if String.length(dx_string) = String.length(dy_string) then
+            let is_equal = BoolDict.fold (fun key value y -> ((BoolDict.lookup dx key) = (BoolDict.lookup dy key)) && y) true dx in
+            if is_equal then Equal
+            else string_compare dx_string dy_string
+        else string_compare dx_string dy_string
       else i         
     let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
     let string_of_value (x,dict) = x ^ BoolDict.string_of_dict dict

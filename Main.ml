@@ -25,6 +25,12 @@ let extract_params (lst: string list) : NamedGraph.node * NamedGraph.node * Dest
   | hd_1 :: hd_2 :: lst' -> (hd_1, hd_2, build_set lst')
 ;;
 
+(* Graph for testing from Jelani's lecture notes *)
+let cs124graph = NamedGraph.from_edges 
+ 		   [("s","a", 2.); ("a","c",1.);("c","e",4.);("s","b",6.);
+ 		    ("b","d",2.);("d","f",2.);("f","e",1.);("c","f",2.);
+		    ("c","b",1.);("b","a",5.)];;
+
 (* Create our graph *)
 let data = NamedGraph.from_edges [
 ("Yenching", "J_August", 49.);
@@ -123,16 +129,17 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
         else (h,d,p)
      | _, None -> failwith("There should always be a distv"))
        ~init: (heap',dist,prev) in 
+   (*print_string (DistDict.string_of_dict newdist);  *) 
    helper newheap newdist newprev in
   (* check if the start node is one of the intermediate nodes *)
   let s_dict = 
        if DestinationSet.member interm s
        then BoolDict.insert BoolDict.empty s true
-       else BoolDict.empty in
+       else BoolDict.empty in 
   (* initial heap, dist, and prev *)
-  let initial_heap = (NodeHeapQueue.add (s,0.,s_dict) 
+  let initial_heap = (NodeHeapQueue.add (s,0.,s_dict  (*BoolDict.empty*)) 
           NodeHeapQueue.empty) in
-  let initial_dist = DistDict.insert DistDict.empty (s,s_dict) 0. in
+  let initial_dist = DistDict.insert DistDict.empty (s,s_dict (*BoolDict.empty*)) 0. in
   let initial_prev = PrevDict.empty in
   (* run the helper function on our initial values *)                
   let (final_dist,final_prev) = (helper initial_heap initial_dist
@@ -150,7 +157,30 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
   in (distance, nodes)
 ;;
 
-(* Get the server port number, uusally 8080 *)
+(* Tests for our modified dijkstra's - yay corner cases! *)
+assert(dijkstra cs124graph "s" "a" DestinationSet.empty = (2.,["s";"a"]));;
+assert(dijkstra cs124graph "s" "s" DestinationSet.empty = (0.,["s"]));;
+assert(dijkstra cs124graph "s" "f" DestinationSet.empty = (5.,["s";"a";"c";"f"]));;
+assert(dijkstra cs124graph "s" "s" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (15., ["s";"a";"c";"b";"d";"f";"e";"f";"c";"a";"s"]));; 
+assert(dijkstra cs124graph "s" "a" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (13., ["s";"a";"c";"b";"d";"f";"e";"f";"c";"a"]));; 
+assert(dijkstra cs124graph "c" "f" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (15., ["c";"b";"c";"a";"c";"b";"c";"a";"c";"a";"c";"b";"d";"f"]));;
+assert(dijkstra cs124graph "s" "e" (build_set ["s"]) = (6., ["s";"a";"c";"f";"e"]));;  
+assert(dijkstra cs124graph "s" "e" (build_set ["e"]) = (6., ["s";"a";"c";"f";"e"]));;  
+assert(dijkstra cs124graph "s" "s" (build_set ["s"]) = (0., ["s"]));;
+assert(dijkstra cs124graph "s" "e" (build_set ["b"]) = (8., ["s";"a";"c";"b";"c";"f";"e"]));;
+assert(dijkstra cs124graph "s" "e" (build_set ["b";"c"]) = (8., ["s";"a";"c";"b";"c";"f";"e"]));;
+
+(* Print function for testing *)
+(*
+ let rec print_list = function [] -> ()
+   | e::l -> print_string e ; print_string " " ; print_list l;;
+
+let (x, ls) = (dijkstra cs124graph "s" "e" 
+				    (build_set ["e"])) in
+    print_list (ls); print_float x;; 
+*)
+
+(* Get the server port number, usally 8080 *)
 let server_port =
   let args = Sys.argv in
     try
