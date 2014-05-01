@@ -634,7 +634,7 @@ struct
   let test_insert_random_order () =
     let pairs5 = generate_random_list 100 in
     let d5 = insert_list empty pairs5 in
-    List.iter pairs5 ~f:(fun (k,v) -> assert(member d5 k)) ;
+    List.iter pairs5 ~f:(fun (k,_) -> assert(member d5 k)) ;
     assert(balanced d5) ;
     ()
 
@@ -650,7 +650,7 @@ struct
     let d1 = insert_list empty pairs1 in
     List.iter
       pairs1
-      ~f:(fun (k,v) ->
+      ~f:(fun (k,_) ->
         let r = remove d1 k in
         let _ = List.iter
           pairs1
@@ -667,7 +667,7 @@ struct
     let d1 = insert_list_reversed empty pairs1 in
     List.iter
       pairs1
-      ~f:(fun (k,v) ->
+      ~f:(fun (k,_) ->
         let r = remove d1 k in
         let _ = List.iter
           pairs1

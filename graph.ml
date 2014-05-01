@@ -58,7 +58,7 @@ struct
         let string_of_t x = let (n, _) = x in N.string_of_node n
         let gen ()= (N.gen (), 3.)
         let gen_random () = (N.gen (), (Random.float 100.))
-        let gen_gt (node, value) () = (N.gen (), 3.)
+        let gen_gt (_, _) () = (N.gen (), 3.)
       end)
 
   module EdgeDict = Dict.Make(
@@ -70,7 +70,7 @@ struct
       let string_of_value ns = NeighborSet.string_of_set ns
       let gen_key = N.gen
       let gen_key_random = N.gen
-      let gen_key_gt x () = N.gen ()
+      let gen_key_gt _ () = N.gen ()
       let gen_value () = NeighborSet.empty
       let gen_pair () = (gen_key(),gen_value())
     end)
@@ -84,7 +84,7 @@ struct
       let string_of_value = N.string_of_node
       let gen_key () = 0
       let gen_key_random () = 0
-      let gen_key_gt x () = 1
+      let gen_key_gt _ () = 1
       let gen_value = N.gen
       let gen_pair () = (gen_key(),gen_value())
     end)
