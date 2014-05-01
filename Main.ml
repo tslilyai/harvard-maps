@@ -265,6 +265,7 @@ let string_of_interms ls =
   in "&markers=size:mid%7Ccolor:green%7Clabel:.%7C" ^ (interms_string ls)
 ;;
 
+
 (* Here we can trace out the path itself *) 
 let string_of_path node_list = 
   let rec node_string nodes = 
@@ -284,7 +285,7 @@ let do_query query_string =
   let distance = (Float.to_string x) ^ "\n" in
   let destinations = (string_of_list ls) in
   let start_end_string = (string_of_markers start_pos end_pos) in
-  let interms_string = (string_of_interms query) in
+  let interms_string = (string_of_interms query (*(List.length(query))*)) in
   let path_string = (string_of_path ls) in
     query_response_header ^ "Distance: " ^ distance ^ "feet" ^ "<br><table align=\"center\" cellpadding=\"10\"><tr><td valign=\"top\">" 
     ^ "Directions: " ^ destinations ^ "</td><td> " ^ 
