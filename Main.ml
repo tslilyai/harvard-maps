@@ -18,11 +18,15 @@ let build_set (lst: NamedGraph.node list) : DestinationSet.set =
       ~init:DestinationSet.empty 
     ;;
 
+(* Ensures that we do not have the start or end nodes in the intermediate destinations *)
+let remove_start_end ls start end = 
+  List.filter ~f(fun x -> x <> start && x <> end) ls
+
 (* Extract the start, end, and intermediate locations *)
 let extract_params (lst: string list) : NamedGraph.node * NamedGraph.node * DestinationSet.set =
   match lst with
   | [] |_ :: [] -> failwith "not enough params"
-  | hd_1 :: hd_2 :: lst' -> (hd_1, hd_2, build_set lst')
+  | hd_1 :: hd_2 :: lst' -> (hd_1, hd_2, build_set (remove_start_end lst' hd1 hd2))
 ;;
 
 (* Create our graph *)
@@ -207,6 +211,7 @@ let std_response =
   let term_sep_re_interms = Str.regexp "\\&interms="
 ;;    
 
+
   (* Tturns a list of the provided arguments *)
   let parse_query s = 
     if Str.string_match query_re_begin s 0 then 
@@ -285,7 +290,7 @@ let do_query query_string =
   let distance = (Float.to_string x) ^ "\n" in
   let destinations = (string_of_list ls) in
   let start_end_string = (string_of_markers start_pos end_pos) in
-  let interms_string = (string_of_interms query (*(List.length(query))*)) in
+  let interms_string = (string_of_interms query) in
   let path_string = (string_of_path ls) in
     query_response_header ^ "Distance: " ^ distance ^ "feet" ^ "<br><table align=\"center\" cellpadding=\"10\"><tr><td valign=\"top\">" 
     ^ "Directions: " ^ destinations ^ "</td><td> " ^ 
