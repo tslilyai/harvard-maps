@@ -3,6 +3,12 @@
 <title>Harvard Maps</title>
 </head>
 
+<style type="text/css">
+ table {
+    margin: 0 auto;
+}
+</style>
+
 <body>
 <div align="center">
  <img src="https://scontent-b-iad.xx.fbcdn.net/hphotos-prn2/t1.0-9/10259934_10152783065559838_5675770013797698457_n.jpg" width="500px">
@@ -11,9 +17,11 @@
 <div align="center">
  <form>
 	<table cellpadding="5">
-	<tr><th colspan="3" align="center"><b>Start Location:</b></th></tr>
+	<tr><th colspan="2" align="center"><b>Start Location:</b></th>
+	    <th colspan="2" align="center"><b>End Location:</b></th>
+	</tr>
 	<tr>
-	  	<td colspan="3" align="center">
+	  	<td colspan="2" align="center">
 		  	<select name="begin">
 		 		<option value="Yenching">Yenching</option>
 				<option value="JP_Licks">JP Licks</option>
@@ -29,12 +37,29 @@
 		 		<option value="Sandrines">Sandrine's</option>
 		 		<option value="Felix">Felix</option>
 		 		<option value="Claverly">Claverly Hall</option>
+				<option value="Wigglesworth">Wigglesworth</option>
+				<option value="Lamont">Lamont</option>
+		 		<option value="Widener">Widener</option>
+		 		<option value="Boylston">Boylston</option>
+		 		<option value="Grays">Grays</option>
+		 		<option value="Matthews">Matthews</option>
+		 		<option value="Emerson">Emerson</option>
+		 		<option value="Sever">Sever</option>
+		 		<option value="Mem_church">Memorial church</option>
+		 		<option value="Thayer">Thayer</option>
+		 		<option value="Mass_Hall">Mass Hall</option>
+		 		<option value="Straus">Straus</option>
+		 		<option value="Hollis">Hollis</option>
+		 		<option value="Stoughton">Stoughton</option> 
+		 		<option value="Mower">Mower</option>
+				<option value="Lionel">Lionel</option>
+		 		<option value="Canaday">Canaday</option>
+		 		<option value="University_hall">University Hall</option>
+		 		<option value="Weld">Weld</option>
+		 		<option value="Holworthy">Holworthy</option>		
 			</select><br><br>
 		</td>
-	</tr>
-	<tr><th colspan="3" align="center"><b>End Location:</b></th> </tr>
-	<tr>	
-		<td colspan="3" align="center">  
+	    <td colspan="2" align="center">  
 		  	<select name="end">
 		 		<option value="Yenching">Yenching</option>
 				<option value="JP_Licks">JP Licks</option>
@@ -50,30 +75,83 @@
 		 		<option value="Sandrines">Sandrine's</option>
 		 		<option value="Felix">Felix</option>
 		 		<option value="Claverly">Claverly Hall</option>
+		 		<option value="Wigglesworth">Wigglesworth</option>
+				<option value="Lamont">Lamont</option>
+		 		<option value="Widener">Widener</option>
+		 		<option value="Boylston">Boylston</option>
+		 		<option value="Grays">Grays</option>
+		 		<option value="Matthews">Matthews</option>
+		 		<option value="Emerson">Emerson</option>
+		 		<option value="Sever">Sever</option>
+		 		<option value="Mem_church">Memorial church</option>
+		 		<option value="Thayer">Thayer</option>
+		 		<option value="Mass_Hall">Mass Hall</option>
+		 		<option value="Straus">Straus</option>
+		 		<option value="Hollis">Hollis</option>
+		 		<option value="Stoughton">Stoughton</option> 
+		 		<option value="Mower">Mower</option>
+				<option value="Lionel">Lionel</option>
+		 		<option value="Canaday">Canaday</option>
+		 		<option value="University_hall">University Hall</option>
+		 		<option value="Weld">Weld</option>
+		 		<option value="Holworthy">Holworthy</option>		
 			</select><br><br>
 		</td>
 	</tr>
-	<tr><th colspan="3" align="center"><b>Intermediate Destinations: </b></th></tr>
+	</table>
+	
+	<table cellpadding="5">
+	<caption><b>Intermediate Destinations:</b></caption>
+	<tr><th><u>Houses</u></th>
+	    <th><u>Freshman Dorms</u></th>
+	    <th><u>Academic Buildings</u></th>
+	    <th><u>Shops in Harvard Square</u></th>
+	</tr>
 	<tr>
+	    <td>	
+	 		<input type="checkbox" name="interms" value="Claverly">Claverly Hall<br>
+ 		</td>
+ 	    <td>	
+	 		<input type="checkbox" name="interms" value="Wigglesworth">Wigglesworth<br>
+	 		<input type="checkbox" name="interms" value="Grays">Grays<br>
+	 		<input type="checkbox" name="interms" value="Matthews">Matthews<br>	
+	 		<input type="checkbox" name="interms" value="Thayer">Thayer<br>
+	 		<input type="checkbox" name="interms" value="Mass_Hall">Mass Hall<br>
+	 		<input type="checkbox" name="interms" value="Straus">Straus<br>
+	 		<input type="checkbox" name="interms" value="Hollis">Hollis<br>
+	 		<input type="checkbox" name="interms" value="Stoughton">Stoughton<br> 
+		 	<input type="checkbox" name="interms" value="Mower">Mower<br>
+			<input type="checkbox" name="interms" value="Lionel">Lionel<br>
+	 		<input type="checkbox" name="interms" value="Canaday">Canaday<br>
+	 		<input type="checkbox" name="interms" value="Weld">Weld<br>
+	 		<input type="checkbox" name="interms" value="Holworthy">Holworthy<br>
+ 		</td>	
+ 		<td>	
+	 	    <input type="checkbox" name="interms" value="Lamont">Lamont<br>
+			<input type="checkbox" name="interms" value="Widener">Widener<br>
+	 		<input type="checkbox" name="interms" value="Boylston">Boylston<br>
+	 		<input type="checkbox" name="interms" value="Emerson">Emerson<br>
+	 		<input type="checkbox" name="interms" value="Sever">Sever<br>
+	 		<input type="checkbox" name="interms" value="Mem_church">Memorial church<br>
+	 		<input type="checkbox" name="interms" value="University_hall">University Hall<br>
+ 		</td>
 		<td>
 	 		<input type="checkbox" name="interms" value="Yenching">Yenching<br>
 			<input type="checkbox" name="interms" value="JP_Licks">JP Licks<br>
 	 		<input type="checkbox" name="interms" value="J_August">J August<br>
 	 		<input type="checkbox" name="interms" value="Leavitt">Leavitt and Pierce<br>
-	 		<input type="checkbox" name="interms" value="Gnomon">Gnomon Copy<br>
- 		</td><td>	
+	 		<input type="checkbox" name="interms" value="Gnomon">Gnomon Copy<br>	
 	 		<input type="checkbox" name="interms" value="Zinnia">Zinnia<br>
 	 		<input type="checkbox" name="interms" value="Spice">Spice Thai<br>
 	 		<input type="checkbox" name="interms" value="Andover">Andover<br>
 	 		<input type="checkbox" name="interms" value="Ginos">Gino's<br>
 	 		<input type="checkbox" name="interms" value="Boloco">Boloco<br>
-		</td><td>	
 	 		<input type="checkbox" name="interms" value="Tennis">Tennis<br>
 	 		<input type="checkbox" name="interms" value="Sandrines">Sandrine's<br>
 	 		<input type="checkbox" name="interms" value="Felix">Felix<br>
-	 		<input type="checkbox" name="interms" value="Claverly">Claverly Hall<br>
- 		</td>
+		</td>
 	</tr>
+
 </table>
 
 	<input type="submit" value="Map me!">
