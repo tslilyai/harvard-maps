@@ -14,8 +14,7 @@ sig
   val empty : dict
 
   (* Reduce the dictionary using the provided function f and base case u.
-   * Our reducing function f must have the type:
-   *      key -> value -> 'a -> 'a
+   * Has the type: key -> value -> 'a -> 'a
    * and our base case u has type 'a.
    *
    * If our dictionary is the (key,value) pairs (in any order)
@@ -44,12 +43,12 @@ sig
    * pair removed. Return None if the input dict is empty *)
   val choose : dict -> (key * value * dict) option
 
-  (* functions to convert our types to strings for debugging and logging *)
+  (* Functions to convert our types to strings for debugging and logging *)
   val string_of_key: key -> string
   val string_of_value : value -> string
   val string_of_dict : dict -> string
 
-  (* Runs all the tests. see TESTING EXPLANATION below *)
+  (* Runs all the tests. *)
   val run_tests : unit -> unit
 end
 
@@ -211,6 +210,7 @@ struct
   let string_of_value = D.string_of_value
   let string_of_dict (d: dict) : string =
     fold (fun k v rest -> (string_of_key k)^ (string_of_value v) ^ rest) "" d
+
   (* Upward phase for w where its parent is a Two node whose (key,value) is x.
    * One of x's children is w, and the other child is x_other. This function
    * should return a kicked-up configuration containing the new tree as a
@@ -434,7 +434,6 @@ struct
             Absorbed(rem,Three(left,(k1,v1),t,(k2,v2),right))
         )
 
-  (* DO NOT EDIT THIS *)
   and remove_min (d: dict) : hole =
     match d with
       | Leaf -> Hole(None,Leaf)
@@ -451,15 +450,13 @@ struct
           | Absorbed(rem,t) -> Absorbed(rem,Three(t,n1,middle,n2,right))
         )
 
-
   let remove (d: dict) (k: key) : dict =
     match remove_downward d k with
       | Hole(_,d') -> d'
       | Absorbed(_,d') -> d'
 
-
-   (* Write a lookup function that returns the value of the given key
-   * in our dictionary and returns it as an option, or return None
+   (* Returns the value of the given keyin our dictionary 
+   * and returns it as an option, or return None
    * if the key is not in our dictionary. *)
   let rec lookup (d: dict) (k: key) : value option =
     match d with
@@ -477,12 +474,11 @@ struct
           | _, Greater -> lookup right k
           | Greater, Less -> lookup middle k)
 
-  (* Write a function to test if a given key is in our dictionary *)
+  (* Test if a given key is in our dictionary *)
   let member (d: dict) (k: key) : bool =
     lookup d k <> None
 
-   (* Write a function that removes any (key,value) pair from our
-   * dictionary (your choice on which one to remove), and returns
+   (* Removes any (key,value) pair from our dictionary and returns
    * as an option this (key,value) pair along with the new dictionary.
    * If our dictionary is empty, this should return None. *)
   let choose (d: dict) : (key * value * dict) option =
@@ -491,9 +487,7 @@ struct
       | Two(_,(k,v),_) -> Some (k,v,remove d k)
       | Three(_,(k,v),_,_,_) -> Some (k,v,remove d k)
 
-   (* Write a function that when given a 2-3 tree (represented by our
-   * dictionary d), returns true if and only if the tree is "balanced"*)
-
+   (* Returns true if and only if the tree is "balanced"*)
  let balanced (d: dict) : bool =
     let rec bounds (d: dict) : (int * int) =
       match d with
@@ -514,8 +508,6 @@ struct
 
   (********************************************************************)
   (*       TESTS                                                      *)
-  (* You must write more comprehensive tests, using our remove tests  *)
-  (* below as an example                                              *)
   (********************************************************************)
 
   (* adds a list of (key,value) pairs in left-to-right order *)
@@ -732,8 +724,6 @@ end
 module IntStringBTDict = BTDict(IntStringDictArg) ;;
 IntStringBTDict.run_tests();;
 
-
-
 (******************************************************************)
 (* Make: a functor that creates a DICT *)
 (******************************************************************)
@@ -741,8 +731,9 @@ module Make (D:DICT_ARG) : (DICT with type key = D.key
   with type value = D.value) =
   BTDict(D)
 
-(* make all the modules *)
+(* Make all the modules used in Dijkstra's *)
 
+(* Dictionary that maps a node to a boolean. Used to store the "visited" state-space *)
 module BoolDict = Make(
   struct
     type key = string
@@ -757,6 +748,7 @@ module BoolDict = Make(
     let gen_pair () = (gen_key_random (), gen_value ())
   end)
 
+(* Dictionary that maps a node to the shortest distance to that node from start node *)
 module DistDict = Make(
   struct
     type key = string * BoolDict.dict
@@ -767,9 +759,9 @@ module DistDict = Make(
         let dx_string = BoolDict.string_of_dict dx in
         let dy_string = BoolDict.string_of_dict dy in
             if String.length(dx_string) = String.length(dy_string) then 
-            let is_equal_1 = BoolDict.fold (fun key value y -> ((BoolDict.lookup dx key) = (BoolDict.lookup dy key)) && y) true dx in
-            (*let is_equal_2 = BoolDict.fold (fun key _ y -> ((BoolDict.lookup dx key) <> None) && y) true dy in *)
-            if is_equal_1 (*&& is_equal_2*) then Equal 
+            let is_equal_1 = BoolDict.fold (fun key _ y -> ((BoolDict.lookup dy key) <> None) && y) true dx in
+            let is_equal_2 = BoolDict.fold (fun key _ y -> ((BoolDict.lookup dx key) <> None) && y) true dy in
+            if is_equal_1 && is_equal_2 then Equal 
             else string_compare dx_string dy_string
          else string_compare dx_string dy_string 
        else i         
@@ -782,6 +774,7 @@ module DistDict = Make(
     let gen_pair () = (gen_key_random (), gen_value ())
   end)
 
+(* Dictionary that maps a node to the previous node in that specific path *)
 module PrevDict = Make(
   struct
     type key = (string * BoolDict.dict)
@@ -807,6 +800,7 @@ module PrevDict = Make(
     let gen_pair () = (gen_key_random (), gen_value ())    
   end)
 
+(* Dictionary that maps a location's name to its coordinates *)
 module LocationDict = Make(
   struct
     type key = string
@@ -820,3 +814,71 @@ module LocationDict = Make(
     let gen_value () = Int.to_string (Random.int 100)
     let gen_pair () = (gen_key_random (), gen_value ())  
   end)
+
+
+(* Inserts location-coordinate key-value pairs into the dictionary *)
+let insert_locations (ls : (string*string) list) : LocationDict.dict =
+  List.fold_left ls ~f:(fun d (k, v) -> LocationDict.insert d k v) ~init:LocationDict.empty
+;;
+
+(* Insert coordinates of each location into LocationDict *)
+let location_pts = insert_locations [
+("Yenching", "42.372976,-71.117853");
+("J_August", "42.372872,-71.117717");
+("Boloco", "42.372038,-71.11829");
+("JP_Licks","42.372922,-71.117552");
+("Leavitt","42.372912,-71.117641");
+("Gnomon","42.372888,-71.117458");
+("Zinnia","42.372823,-71.11727");
+("Spice","42.372181,-71.118386");
+("Andover","42.372264,-71.11833");
+("Ginos","42.372319,-71.118263");
+("Tennis","42.37199,-71.118287");
+("Sandrines","42.372731,-71.118048");
+("Felix","42.372882,-71.117426");
+("Wigglesworth","42.37309,-71.117164");
+("Lamont","42.372722,-71.115501");
+("Widener","42.373284,-71.11652");
+("Boylston","42.373371,-71.117319");
+("Grays","42.373665,-71.117797");
+("Matthews","42.374097,-71.11814");
+("Emerson","42.373891,-71.115254");
+("Sever","42.374374,-71.115522");
+("Mem_church","42.374941,-71.115924");
+("Thayer","42.37506,-71.116734");
+("Mass_hall","42.374477,-71.118328");
+("Straus", "42.37418,-71.118607");
+("Hollis","42.375004,-71.117845");
+("Stoughton","42.375369,-71.117743");
+("Mower","42.375464,-71.118247");
+("Lionel","42.375155,-71.118354");
+("Canaday","42.375341,-71.116037");
+("University_hall","42.374497,-71.117078");
+("Weld","42.373994,-71.117126");
+("Holworthy","42.375519,-71.117115");
+("Pfoho","42.382125,-71.124911");
+("Cabot","42.381499,-71.124245");
+("Currier","42.381769,-71.125629");
+("Soch","42.380889,-71.125147");
+("Crimson","42.372151,-71.116541");
+("AdamsDhall", "42.371925,-71.116649");
+("AdamsClaverly","42.371915,-71.117734");
+("Lampoon","42.371572,-71.117196");
+("Lowell","42.370986,-71.117807");
+("Quincy","42.370998,-71.117169");
+("Lev_McKinlock","42.370102,-71.117587");
+("Lev_Towers","42.369666,-71.116412");
+("Dunster","42.368774,-71.115919");
+("Mather","42.368659,-71.115205");
+("WinthropGore","42.370391,-71.118639");
+("WinthropStandish","42.370451,-71.119862");
+("Eliot","42.370407,-71.120956");
+("Kirkland","42.370831,-71.120452");
+("MAC","42.37139,-71.119465");
+("UHS","42.372171,-71.118666");
+("Finale","42.372492,-71.119079");
+("Smith","42.372979,-71.11844");
+("T_Station","42.37328,-71.118907");
+("Harvard_Bookstore","42.372539,-71.116353")
+]
+;;

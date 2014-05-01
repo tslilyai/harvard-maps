@@ -71,7 +71,6 @@ sig
 end
 
 
-
 (* For Testing*)
 module IntComparable : COMPARABLE =
 struct
@@ -148,9 +147,6 @@ struct
 
   (****************************************************************)
   (* Tests for our DictSet functor                                *)
-  (* Use the tests from the ListSet functor to see how you should *)
-  (* write tests. However, you must write a lot more              *)
-  (* comprehensive tests to test ALL your functions.              *)
   (****************************************************************)
 
   let insert_set (d: set) (lst: elt list) : set =
@@ -270,4 +266,5 @@ IntDictSet.run_tests();;
 module Make(C : COMPARABLE) : (SET with type elt = C.t) =
   DictSet (C)
 
+(* A set that has all the requested destinations *)
 module DestinationSet = Make(StringComparable)
