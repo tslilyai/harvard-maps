@@ -767,9 +767,9 @@ module DistDict = Make(
         let dx_string = BoolDict.string_of_dict dx in
         let dy_string = BoolDict.string_of_dict dy in
             if String.length(dx_string) = String.length(dy_string) then 
-            let is_equal_1 = BoolDict.fold (fun key _ y -> ((BoolDict.lookup dy key) <> None) && y) true dx in
-            let is_equal_2 = BoolDict.fold (fun key _ y -> ((BoolDict.lookup dx key) <> None) && y) true dy in
-            if is_equal_1 && is_equal_2 then Equal 
+            let is_equal_1 = BoolDict.fold (fun key value y -> ((BoolDict.lookup dx key) = (BoolDict.lookup dy key)) && y) true dx in
+            (*let is_equal_2 = BoolDict.fold (fun key _ y -> ((BoolDict.lookup dx key) <> None) && y) true dy in *)
+            if is_equal_1 (*&& is_equal_2*) then Equal 
             else string_compare dx_string dy_string
          else string_compare dx_string dy_string 
        else i         
@@ -792,9 +792,9 @@ module PrevDict = Make(
         let dx_string = BoolDict.string_of_dict dx in
         let dy_string = BoolDict.string_of_dict dy in
         if String.length(dx_string) = String.length(dy_string) then 
-            let is_equal_1 = BoolDict.fold (fun key _ y -> ((BoolDict.lookup dy key) <> None) && y) true dx in
-            let is_equal_2 = BoolDict.fold (fun key _ y -> ((BoolDict.lookup dx key) <> None) && y) true dy in
-         if is_equal_1 && is_equal_2 then Equal 
+            let is_equal_1 = BoolDict.fold (fun key value y -> ((BoolDict.lookup dx key) = (BoolDict.lookup dy key)) && y) true dx in
+            (*let is_equal_2 = BoolDict.fold (fun key _ y -> ((BoolDict.lookup dx key) <> None) && y) true dy in *)
+         if is_equal_1 (*&& is_equal_2 *) then Equal 
          else string_compare dx_string dy_string
         else string_compare dx_string dy_string 
       else i         

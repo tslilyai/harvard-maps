@@ -215,7 +215,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
         let d' = DistDict.insert d (w_node, w_dict) distw' in
         let p' = PrevDict.insert p (w_node, w_dict) 
                (v_node, v_dict) in
-        let _ = print_string (w_node ^ "," ^ (BoolDict.string_of_dict w_dict)) in
+        (*let _ = print_string (w_node ^ "," ^ (BoolDict.string_of_dict w_dict)) in *)
         (h', d', p')
      | Some distw, Some distv -> 
         let distw' = distv +. w_length in
@@ -224,7 +224,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
           let d' = DistDict.insert d (w_node, w_dict) distw' in
           let p' = PrevDict.insert p (w_node, w_dict) 
                  (v_node, v_dict) in
-          let _ = print_string (w_node ^ "," ^ (BoolDict.string_of_dict w_dict)) in
+          (*let _ = print_string (w_node ^ "," ^ (BoolDict.string_of_dict w_dict)) in *)
           (h', d', p')
         else (h,d,p)
      | _, None -> failwith("There should always be a distv"))
@@ -249,7 +249,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
        (fun node dict -> BoolDict.insert dict node true) 
        BoolDict.empty interm in
   (* get the shortest distance of our path *)
-  let _ = print_string (DistDict.string_of_dict final_dist) in
+  (*let _ = print_string (DistDict.string_of_dict final_dist) in *)
   let distance = match DistDict.lookup final_dist (fin, final_booldict) with
                 | None -> failwith ("Unreachable destination")
                 | Some d -> d
@@ -259,7 +259,7 @@ let dijkstra (graph: NamedGraph.graph) (s: NamedGraph.node) (fin: NamedGraph.nod
 ;;
 
 (* Tests for our modified dijkstra's - yay corner cases! *)
-(*assert(dijkstra cs124graph "s" "a" DestinationSet.empty = (2.,["s";"a"]));;
+assert(dijkstra cs124graph "s" "a" DestinationSet.empty = (2.,["s";"a"]));;
 assert(dijkstra cs124graph "s" "s" DestinationSet.empty = (0.,["s"]));;
 assert(dijkstra cs124graph "s" "f" DestinationSet.empty = (5.,["s";"a";"c";"f"]));;
 assert(dijkstra cs124graph "s" "s" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (15., ["s";"a";"c";"b";"d";"f";"e";"f";"c";"a";"s"]));; 
@@ -270,16 +270,16 @@ assert(dijkstra cs124graph "s" "e" (build_set ["e"]) = (6., ["s";"a";"c";"f";"e"
 assert(dijkstra cs124graph "s" "s" (build_set ["s"]) = (0., ["s"]));;
 assert(dijkstra cs124graph "s" "e" (build_set ["b"]) = (8., ["s";"a";"c";"b";"c";"f";"e"]));;
 assert(dijkstra cs124graph "s" "e" (build_set ["b";"c"]) = (8., ["s";"a";"c";"b";"c";"f";"e"]));;
-*)
+
 (* Print function for testing *)
 
- let rec print_list = function [] -> ()
+(* let rec print_list = function [] -> ()
    | e::l -> print_string e ; print_string " " ; print_list l;;
 
 let (x, ls) = (dijkstra data "Yenching" "Yenching" 
 				    (build_set ["Eliot";"Kirkland";"WinthropGore";"WinthropStandish"])) in
     print_list (ls); print_float x;; 
-
+*)
 
 (* Get the server port number, usally 8080 *)
 let server_port =
