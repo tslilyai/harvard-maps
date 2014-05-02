@@ -83,9 +83,9 @@ let dijkstra (graph: DataGraph.graph) (s: DataGraph.node) (fin: DataGraph.node)
        then BoolDict.insert BoolDict.empty s true
        else BoolDict.empty in 
   (* initial heap, dist, and prev *)
-  let initial_heap = (NodeHeapQueue.add (s,0.,s_dict  (*BoolDict.empty*)) 
+  let initial_heap = (NodeHeapQueue.add (s,0.,s_dict) 
           NodeHeapQueue.empty) in
-  let initial_dist = DistDict.insert DistDict.empty (s,s_dict (*BoolDict.empty*)) 0. in
+  let initial_dist = DistDict.insert DistDict.empty (s,s_dict) 0. in
   let initial_prev = PrevDict.empty in
   (* run the helper function on our initial values *)                
   let (final_dist,final_prev) = (helper initial_heap initial_dist
