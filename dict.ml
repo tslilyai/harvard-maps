@@ -674,7 +674,8 @@ struct
   let test_remove_random_order () =
     let pairs5 = generate_random_list 100 in
     let d5 = insert_list empty pairs5 in
-    let r5 = List.fold_right pairs5 ~f:(fun (k,_) d -> remove d k) ~init:d5 in
+    let r5 = List.fold_right 
+	       pairs5 ~f:(fun (k,_) d -> remove d k) ~init:d5 in
     List.iter pairs5 ~f:(fun (k,_) -> assert(not (member r5 k))) ;
     assert(r5 = empty) ;
     assert(balanced r5) ;
@@ -735,7 +736,8 @@ module Make (D:DICT_ARG) : (DICT with type key = D.key
 
 (* Make all the modules used in Dijkstra's *)
 
-(* Dictionary that maps a node to a boolean. Used to store the "visited" state-space *)
+(* Dictionary that maps a node to a boolean. Used to store the 
+ * "visited" state-space *)
 module BoolDict = Make(
   struct
     type key = string
@@ -750,7 +752,8 @@ module BoolDict = Make(
     let gen_pair () = (gen_key_random (), gen_value ())
   end)
 
-(* Dictionary that maps a node to the shortest distance to that node from start node *)
+(* Dictionary that maps a node to the shortest distance to 
+ * that node from start node *)
 module DistDict = Make(
   struct
     type key = string * BoolDict.dict
@@ -762,16 +765,19 @@ module DistDict = Make(
         let dy_string = BoolDict.string_of_dict dy in
         string_compare dx_string dy_string
        else i                 
-    let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
+    let string_of_key (x,dict) = 
+      x ^ BoolDict.string_of_dict dict
     let string_of_value = Float.to_string
     let gen_key () = ("1", BoolDict.empty)
-    let gen_key_random () = (Int.to_string (Random.int 100), BoolDict.empty)
+    let gen_key_random () = 
+      (Int.to_string (Random.int 100), BoolDict.empty)
     let gen_key_gt (s, dict) () = (s ^ "a", dict)
     let gen_value () = Random.float 100.
     let gen_pair () = (gen_key_random (), gen_value ())
   end)
 
-(* Dictionary that maps a node to the previous node in that specific path *)
+(* Dictionary that maps a node to the previous node in that 
+ *specific path *)
 module PrevDict = Make(
   struct
     type key = (string * BoolDict.dict)
@@ -786,7 +792,8 @@ module PrevDict = Make(
     let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
     let string_of_value (x,dict) = x ^ BoolDict.string_of_dict dict
     let gen_key () = ("1", BoolDict.empty)
-    let gen_key_random () = (Int.to_string (Random.int 100), BoolDict.empty)
+    let gen_key_random () = 
+      (Int.to_string (Random.int 100), BoolDict.empty)
     let gen_key_gt (s, dict) () = (s ^ "a", dict)
     let gen_value () = gen_key_random ()
     let gen_pair () = (gen_key_random (), gen_value ())    
@@ -810,7 +817,8 @@ module LocationDict = Make(
 
 (* Inserts location-coordinate key-value pairs into the dictionary *)
 let insert_locations (ls : (string*string) list) : LocationDict.dict =
-  List.fold_left ls ~f:(fun d (k, v) -> LocationDict.insert d k v) ~init:LocationDict.empty
+  List.fold_left ls ~f:(fun d (k, v) -> LocationDict.insert d k v) 
+		 ~init:LocationDict.empty
 ;;
 
 (* Insert coordinates of each location into LocationDict *)

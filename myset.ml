@@ -76,7 +76,8 @@ module IntComparable : COMPARABLE =
 struct
   open Order
   type t = int
-  let compare x y = if x < y then Less else if x > y then Greater else Equal
+  let compare x y = if x < y then Less else if x > y 
+		    then Greater else Equal
   let string_of_t = string_of_int
   let gen () = 0
   let gen_random =

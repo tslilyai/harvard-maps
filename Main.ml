@@ -11,11 +11,12 @@ open Order
 (* Insert nodes into a set *)
 let build_set (lst: DataGraph.node list) : DestinationSet.set = 
   List.fold_right lst ~f:(fun x y -> DestinationSet.insert x y)
-      ~init:DestinationSet.empty 
-    ;;
+		  ~init:DestinationSet.empty 
+;;
 
 (* Extract the start, end, and intermediate locations *)
-let extract_params (lst: string list) : DataGraph.node * DataGraph.node * DestinationSet.set =
+let extract_params (lst: string list) : 
+      DataGraph.node * DataGraph.node * DestinationSet.set =
   match lst with
   | [] |_ :: [] -> failwith "not enough params"
   | hd_1 :: hd_2 :: lst' -> (hd_1, hd_2, build_set lst')
@@ -23,106 +24,113 @@ let extract_params (lst: string list) : DataGraph.node * DataGraph.node * Destin
 
 
 (* The modified dijkstra function *)
-let dijkstra (graph: DataGraph.graph) (s: DataGraph.node) (fin: DataGraph.node) 
-       (interm: DestinationSet.set) 
+let dijkstra (graph: DataGraph.graph) (s: DataGraph.node) 
+	     (fin: DataGraph.node) (interm: DestinationSet.set) 
     : (float * DataGraph.node list)=
   let rec extract_path prev_dict node path = 
     match PrevDict.lookup prev_dict node with
-                  | None -> path
-                  | Some (str,dict) -> extract_path prev_dict (str,dict) (str::path)
+    | None -> path
+    | Some (str,dict) -> extract_path prev_dict (str,dict) (str::path)
   in
   let rec helper (heap: NodeHeapQueue.queue) (dist: DistDict.dict) 
-     (prev: PrevDict.dict) 
+		 (prev: PrevDict.dict) 
           : DistDict.dict * PrevDict.dict =
     (* check if the heap is empty *)
     if NodeHeapQueue.is_empty heap then (dist,prev)
     else 
-    (* take the node with the minimum distance from the heap *)
+      (* take the node with the minimum distance from the heap *)
       let ((v_node,_,v_dict), heap') = NodeHeapQueue.take heap in
       (* traverse all edges coming from v_node *)
       match DataGraph.neighbors graph v_node with
       | None -> failwith "Neighborless node, impossible in our graph"
       | Some lst ->
-   let (newheap, newdist, newprev) = 
+	 let (newheap, newdist, newprev) = 
            List.fold_right 
-       lst 
-       ~f:(fun w (h,d,p) -> 
-     let (w_node,w_length) = w in
-     (* check if the neighbor is one of the intermediate nodes *)
-     let w_dict = 
-       if DestinationSet.member interm w_node
-       then BoolDict.insert v_dict w_node true
-       else v_dict in
-     match (DistDict.lookup d (w_node, w_dict)), 
-           (DistDict.lookup dist (v_node, v_dict)) with 
-     | None, Some distv -> 
-        let distw' = distv +. w_length in
-        let h' = NodeHeapQueue.add (w_node, distw', w_dict) h in
-        let d' = DistDict.insert d (w_node, w_dict) distw' in
-        let p' = PrevDict.insert p (w_node, w_dict) 
-               (v_node, v_dict) in
-        (*let _ = print_string (w_node ^ "," ^ (BoolDict.string_of_dict w_dict)) in *)
-        (h', d', p')
-     | Some distw, Some distv -> 
-        let distw' = distv +. w_length in
-        if distw' < distw then 
-          let h' = NodeHeapQueue.add (w_node, distw', w_dict) h in
-          let d' = DistDict.insert d (w_node, w_dict) distw' in
-          let p' = PrevDict.insert p (w_node, w_dict) 
-                 (v_node, v_dict) in
-          (*let _ = print_string (w_node ^ "," ^ (BoolDict.string_of_dict w_dict)) in *)
-          (h', d', p')
-        else (h,d,p)
-     | _, None -> failwith("There should always be a distv"))
-       ~init: (heap',dist,prev) in 
-   (*print_string (DistDict.string_of_dict newdist);  *) 
-   helper newheap newdist newprev in
+	     lst 
+	     ~f:(fun w (h,d,p) -> 
+		 let (w_node,w_length) = w in
+		 (* check if the neighbor is one of the intermediate nodes *)
+		 let w_dict = 
+		   if DestinationSet.member interm w_node
+		   then BoolDict.insert v_dict w_node true
+		   else v_dict in
+		 match (DistDict.lookup d (w_node, w_dict)), 
+		       (DistDict.lookup dist (v_node, v_dict)) with 
+		 | None, Some distv -> 
+		    let distw' = distv +. w_length in
+		    let h' = NodeHeapQueue.add
+			       (w_node, distw', w_dict) h in
+		    let d' = DistDict.insert d (w_node, w_dict) distw' in
+		    let p' = PrevDict.insert p (w_node, w_dict) 
+					     (v_node, v_dict) in
+		    (h', d', p')
+		 | Some distw, Some distv -> 
+		    let distw' = distv +. w_length in
+		    if distw' < distw then 
+		      let h' = NodeHeapQueue.add 
+				 (w_node, distw', w_dict) h in
+		      let d' = DistDict.insert d (w_node, w_dict) distw' in
+		      let p' = PrevDict.insert p (w_node, w_dict) 
+					       (v_node, v_dict) in
+		      (h', d', p')
+		    else (h,d,p)
+		 | _, None -> failwith("There should always be a distv"))
+	     ~init: (heap',dist,prev) in  
+	 helper newheap newdist newprev in
   (* check if the start node is one of the intermediate nodes *)
   let s_dict = 
-       if DestinationSet.member interm s
-       then BoolDict.insert BoolDict.empty s true
-       else BoolDict.empty in 
+    if DestinationSet.member interm s
+    then BoolDict.insert BoolDict.empty s true
+    else BoolDict.empty in 
   (* initial heap, dist, and prev *)
   let initial_heap = (NodeHeapQueue.add (s,0.,s_dict) 
-          NodeHeapQueue.empty) in
+					NodeHeapQueue.empty) in
   let initial_dist = DistDict.insert DistDict.empty (s,s_dict) 0. in
   let initial_prev = PrevDict.empty in
   (* run the helper function on our initial values *)                
   let (final_dist,final_prev) = (helper initial_heap initial_dist
-          initial_prev) in
-  (* add all the intermediate destinations as keys and "visited" bools as values *)
+					initial_prev) in
+  (* add all the intermediate destinations as keys and "visited" bools 
+   * as values *)
   let final_booldict = DestinationSet.fold 
-       (fun node dict -> BoolDict.insert dict node true) 
-       BoolDict.empty interm in
+			 (fun node dict -> BoolDict.insert dict node true) 
+			 BoolDict.empty interm in
   (* get the shortest distance of our path *)
   (*let _ = print_string (DistDict.string_of_dict final_dist) in *)
   let distance = match DistDict.lookup final_dist (fin, final_booldict) with
-                | None -> failwith ("Unreachable destination")
-                | Some d -> d
+    | None -> failwith ("Unreachable destination")
+    | Some d -> d
   (* extract the shortest path *)
   in let nodes = extract_path final_prev (fin, final_booldict) [fin]
-  in (distance, nodes)
+     in (distance, nodes)
 ;;
-
+  
 (* Tests for our modified dijkstra's - yay corner cases! *)
 assert(dijkstra cs124graph "s" "a" DestinationSet.empty = (2.,["s";"a"]));;
 assert(dijkstra cs124graph "s" "s" DestinationSet.empty = (0.,["s"]));;
-assert(dijkstra cs124graph "s" "f" DestinationSet.empty = (5.,["s";"a";"c";"f"]));;
-assert(dijkstra cs124graph "s" "s" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (15., ["s";"a";"c";"b";"d";"f";"e";"f";"c";"a";"s"]));; 
-assert(dijkstra cs124graph "s" "a" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (13., ["s";"a";"c";"b";"d";"f";"e";"f";"c";"a"]));; 
-assert(dijkstra cs124graph "c" "f" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (13., ["c";"a";"s";"a";"c";"b";"d";"f";"e";"f"]));;
+assert(dijkstra cs124graph "s" "f" DestinationSet.empty 
+       = (5.,["s";"a";"c";"f"]));;
+assert(dijkstra cs124graph "s" "s" (build_set ["s";"a";"b";"c";"d";"e";"f"]) 
+       = (15., ["s";"a";"c";"b";"d";"f";"e";"f";"c";"a";"s"]));; 
+assert(dijkstra cs124graph "s" "a" (build_set ["s";"a";"b";"c";"d";"e";"f"]) 
+       = (13., ["s";"a";"c";"b";"d";"f";"e";"f";"c";"a"]));; 
+assert(dijkstra cs124graph "c" "f" (build_set ["s";"a";"b";"c";"d";"e";"f"]) 
+       = (13., ["c";"a";"s";"a";"c";"b";"d";"f";"e";"f"]));;
 assert(dijkstra cs124graph "s" "e" (build_set ["s"]) = (6., ["s";"a";"c";"f";"e"]));;  
 assert(dijkstra cs124graph "s" "e" (build_set ["e"]) = (6., ["s";"a";"c";"f";"e"]));;  
 assert(dijkstra cs124graph "s" "s" (build_set ["s"]) = (0., ["s"]));;
-assert(dijkstra cs124graph "s" "e" (build_set ["b"]) = (8., ["s";"a";"c";"b";"c";"f";"e"]));;
-assert(dijkstra cs124graph "s" "e" (build_set ["b";"c"]) = (8., ["s";"a";"c";"b";"c";"f";"e"]));;
+assert(dijkstra cs124graph "s" "e" (build_set ["b"]) 
+       = (8., ["s";"a";"c";"b";"c";"f";"e"]));;
+assert(dijkstra cs124graph "s" "e" (build_set ["b";"c"]) 
+       = (8., ["s";"a";"c";"b";"c";"f";"e"]));;
 
 (* Print function for testing *)
 (*
  let rec print_list = function [] -> ()
    | e::l -> print_string e ; print_string " " ; print_list l;;
 
-let (x, ls) = (dijkstra data "Yenching" "Yenching" (build_set ["Mather";"Winthrop_Gore"])) in
+let (x, ls) = (dijkstra data "Yenching" "Yenching" 
+ * (build_set ["Mather";"Winthrop_Gore"])) in
     print_list (ls); print_float x;; 
 *)
 
@@ -270,9 +278,13 @@ let do_query query_string =
   let start_end_string = (string_of_markers start_pos end_pos) in
   let interms_string = (string_of_interms query) in
   let path_string = (string_of_path ls) in
-    query_response_header ^ "Distance: " ^ distance ^ "feet" ^ "<br><table align=\"center\" cellpadding=\"10\"><tr><td valign=\"top\">" 
+    query_response_header ^ "Distance: " ^ distance ^ "feet" 
+    ^ "<br><table align=\"center\" cellpadding=\"10\"><tr><td valign=\"top\">" 
     ^ "Directions: " ^ destinations ^ "</td><td> " ^ 
-    "<img src=" ^ "\"http://maps.googleapis.com/maps/api/staticmap?" ^ path_string ^ "&size=640x640&sensor=false" ^ start_end_string ^ interms_string ^ "\"></img></td></tr></table>"
+    "<img src=" ^ "\"http://maps.googleapis.com/maps/api/staticmap?" 
+    ^ path_string 
+    ^ "&size=640x640&sensor=false" ^ start_end_string ^ interms_string 
+    ^ "\"></img></td></tr></table>"
     ^ query_response_footer
 ;;  
 
@@ -288,9 +300,8 @@ let send_all fd buf =
 ;;
 
 (* process a request -- If we find a query, then we feed it to the query parser to
- * get query abstract syntax.  Then we evaluate the query, and we put the result in an html
- * document to send back to the client.
- *
+ * get query abstract syntax.  Then we evaluate the query, and 
+ * we put the result in an html document to send back to the client.
  *)
 let process_request client_fd request =
     try
@@ -339,7 +350,7 @@ let main () =
   let _ = Random.self_init () in
   let _ = flush_all () in
     server () 
-  ;; 
+;; 
 
 main ();;    
 

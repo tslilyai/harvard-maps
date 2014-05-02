@@ -20,7 +20,8 @@ sig
 
 end
 
-(* Compares two nodes/points in our graph that we insert. Sorts by distance *)
+(* Compares two nodes/points in our graph that we insert. 
+ * Sorts by distance *)
 module PtCompare : COMPARABLE with type t=string * float * BoolDict.dict =
 struct
   type t = string * float * BoolDict.dict
@@ -32,7 +33,8 @@ struct
 
   let to_string x = 
     let (n,d,dict) = x in 
-    "(" ^ n ^ "," ^(Float.to_string d) ^ "," ^ (BoolDict.string_of_dict dict) ^ ")"
+    "(" ^ n ^ "," ^(Float.to_string d) ^ "," 
+    ^ (BoolDict.string_of_dict dict) ^ ")"
 
   let generate () = ("x", 0., BoolDict.empty)
 

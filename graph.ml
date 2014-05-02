@@ -160,7 +160,8 @@ struct
                   let gen () = ""
                 end))
   let from_edges (es: (string * string * float) list) : graph =
-    List.fold_left es ~f:(fun g (src, dst, weight) -> add_edge g src dst weight) ~init:empty
+    List.fold_left es ~f:(fun g (src, dst, weight) -> 
+			  add_edge g src dst weight) ~init:empty
 end
 
 (* Tests *)
