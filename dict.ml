@@ -209,8 +209,8 @@ struct
   let string_of_key = D.string_of_key
   let string_of_value = D.string_of_value
   let string_of_dict (d: dict) : string =
-    let key_list = fold (fun k v rest -> (string_of_key k :: rest)) [] d in
-    let sorted_key_list = List.sort String.compare key_list in
+    let key_list = fold (fun k _ rest -> (string_of_key k :: rest)) [] d in
+    let sorted_key_list = List.sort ~cmp:String.compare key_list in
     List.fold_right sorted_key_list ~f:(fun x y -> x ^ y) ~init:""
 
   (* Upward phase for w where its parent is a Two node whose (key,value) is x.
