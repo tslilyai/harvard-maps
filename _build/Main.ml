@@ -110,7 +110,7 @@ assert(dijkstra cs124graph "s" "s" DestinationSet.empty = (0.,["s"]));;
 assert(dijkstra cs124graph "s" "f" DestinationSet.empty = (5.,["s";"a";"c";"f"]));;
 assert(dijkstra cs124graph "s" "s" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (15., ["s";"a";"c";"b";"d";"f";"e";"f";"c";"a";"s"]));; 
 assert(dijkstra cs124graph "s" "a" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (13., ["s";"a";"c";"b";"d";"f";"e";"f";"c";"a"]));; 
-assert(dijkstra cs124graph "c" "f" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (15., ["c";"b";"c";"a";"c";"b";"c";"a";"c";"a";"c";"b";"d";"f"]));;
+assert(dijkstra cs124graph "c" "f" (build_set ["s";"a";"b";"c";"d";"e";"f"]) = (13., ["c";"a";"s";"a";"c";"b";"d";"f";"e";"f"]));;
 assert(dijkstra cs124graph "s" "e" (build_set ["s"]) = (6., ["s";"a";"c";"f";"e"]));;  
 assert(dijkstra cs124graph "s" "e" (build_set ["e"]) = (6., ["s";"a";"c";"f";"e"]));;  
 assert(dijkstra cs124graph "s" "s" (build_set ["s"]) = (0., ["s"]));;
@@ -118,12 +118,11 @@ assert(dijkstra cs124graph "s" "e" (build_set ["b"]) = (8., ["s";"a";"c";"b";"c"
 assert(dijkstra cs124graph "s" "e" (build_set ["b";"c"]) = (8., ["s";"a";"c";"b";"c";"f";"e"]));;
 
 (* Print function for testing *)
-
-(* let rec print_list = function [] -> ()
+(*
+ let rec print_list = function [] -> ()
    | e::l -> print_string e ; print_string " " ; print_list l;;
 
-let (x, ls) = (dijkstra data "Yenching" "Yenching" 
-				    (build_set ["Eliot";"Kirkland";"WinthropGore";"WinthropStandish"])) in
+let (x, ls) = (dijkstra data "Yenching" "Yenching" (build_set ["Mather";"Winthrop_Gore"])) in
     print_list (ls); print_float x;; 
 *)
 

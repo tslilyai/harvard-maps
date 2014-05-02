@@ -209,7 +209,9 @@ struct
   let string_of_key = D.string_of_key
   let string_of_value = D.string_of_value
   let string_of_dict (d: dict) : string =
-    fold (fun k v rest -> (*(string_of_key k)^ *)(string_of_value v) ^ rest) "" d
+    let key_list = fold (fun k v rest -> (string_of_key k :: rest)) [] d in
+    let sorted_key_list = List.sort String.compare key_list in
+    List.fold_right sorted_key_list ~f:(fun x y -> x ^ y) ~init:""
 
   (* Upward phase for w where its parent is a Two node whose (key,value) is x.
    * One of x's children is w, and the other child is x_other. This function
@@ -758,12 +760,8 @@ module DistDict = Make(
       if i = Equal then 
         let dx_string = BoolDict.string_of_dict dx in
         let dy_string = BoolDict.string_of_dict dy in
-        if String.length(dx_string) = String.length(dy_string) then 
-            let is_equal = BoolDict.fold (fun key value y -> ((BoolDict.lookup dx key) = (BoolDict.lookup dy key)) && y) true dx in
-            if is_equal then Equal
-            else string_compare dx_string dy_string
-        else string_compare dx_string dy_string
-       else i                  
+        string_compare dx_string dy_string
+       else i                 
     let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
     let string_of_value = Float.to_string
     let gen_key () = ("1", BoolDict.empty)
@@ -783,11 +781,7 @@ module PrevDict = Make(
       if i = Equal then 
         let dx_string = BoolDict.string_of_dict dx in
         let dy_string = BoolDict.string_of_dict dy in
-        if String.length(dx_string) = String.length(dy_string) then
-            let is_equal = BoolDict.fold (fun key value y -> ((BoolDict.lookup dx key) = (BoolDict.lookup dy key)) && y) true dx in
-            if is_equal then Equal
-            else string_compare dx_string dy_string
-        else string_compare dx_string dy_string
+        string_compare dx_string dy_string
        else i            
     let string_of_key (x,dict) = x ^ BoolDict.string_of_dict dict
     let string_of_value (x,dict) = x ^ BoolDict.string_of_dict dict
@@ -859,8 +853,8 @@ let location_pts = insert_locations [
 ("Currier","42.381769,-71.125629");
 ("Soch","42.380889,-71.125147");
 ("Crimson","42.372151,-71.116541");
-("AdamsDhall", "42.371925,-71.116649");
-("AdamsClaverly","42.371915,-71.117734");
+("Adams_Dhall", "42.371925,-71.116649");
+("Adams_Claverly","42.371915,-71.117734");
 ("Lampoon","42.371572,-71.117196");
 ("Lowell","42.370986,-71.117807");
 ("Quincy","42.370998,-71.117169");
@@ -868,8 +862,8 @@ let location_pts = insert_locations [
 ("Lev_Towers","42.369666,-71.116412");
 ("Dunster","42.368774,-71.115919");
 ("Mather","42.368659,-71.115205");
-("WinthropGore","42.370391,-71.118639");
-("WinthropStandish","42.370451,-71.119862");
+("Winthrop_Gore","42.370391,-71.118639");
+("Winthrop_Standish","42.370451,-71.119862");
 ("Eliot","42.370407,-71.120956");
 ("Kirkland","42.370831,-71.120452");
 ("MAC","42.37139,-71.119465");
